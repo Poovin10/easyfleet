@@ -1,0 +1,99 @@
+{
+  "@@locale": "en",
+  "appTitle": "EasyFleet",
+  "@appTitle": {
+    "description": "appTitle"
+  },
+  "signIn": "Sign in",
+  "@signIn": {
+    "description": "signIn"
+  },
+  "signOut": "Sign out",
+  "@signOut": {
+    "description": "signOut"
+  },
+  "email": "Email",
+  "@email": {
+    "description": "email"
+  },
+  "password": "Password",
+  "@password": {
+    "description": "password"
+  },
+  "dashboard": "Dashboard",
+  "@dashboard": {
+    "description": "dashboard"
+  },
+  "trips": "Trips",
+  "@trips": {
+    "description": "trips"
+  },
+  "liveTracking": "Live tracking",
+  "@liveTracking": {
+    "description": "liveTracking"
+  },
+  "inspections": "Inspections",
+  "@inspections": {
+    "description": "inspections"
+  },
+  "alerts": "Alerts",
+  "@alerts": {
+    "description": "alerts"
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "settings"
+  },
+  "map": "Map",
+  "@map": {
+    "description": "map"
+  },
+  "offline": "You are offline",
+  "@offline": {
+    "description": "offline"
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "retry"
+  },
+  "noData": "Nothing here yet",
+  "@noData": {
+    "description": "noData"
+  },
+  "loading": "Loading…",
+  "@loading": {
+    "description": "loading"
+  },
+  "error": "Something went wrong",
+  "@error": {
+    "description": "error"
+  },
+  "currentTrip": "Current trip",
+  "@currentTrip": {
+    "description": "currentTrip"
+  },
+  "wallet": "Wallet",
+  "@wallet": {
+    "description": "wallet"
+  },
+  "payouts": "Payouts",
+  "@payouts": {
+    "description": "payouts"
+  },
+  "vehicles": "Vehicles",
+  "@vehicles": {
+    "description": "vehicles"
+  },
+  "dispatch": "Dispatch",
+  "@dispatch": {
+    "description": "dispatch"
+  },
+  "loadingReceipts": "Loading receipts",
+  "@loadingReceipts": {
+    "description": "loadingReceipts"
+  },
+  "unloadTrips": "Unload trips",
+  "@unloadTrips": {
+    "description": "unloadTrips"
+  }
+}

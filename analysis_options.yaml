@@ -1,0 +1,21 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/l10n/generated/**"
+  errors:
+    invalid_annotation_target: ignore
+    # Flutter 3.50 deprecates material.dart in favour of material_ui.dart.
+    # Keep the widely supported import until the migration is intentional.
+    deprecated_member_use: ignore
+
+linter:
+  rules:
+    always_declare_return_types: true
+    avoid_print: true
+    prefer_const_constructors: true
+    prefer_final_locals: true
+    sort_child_properties_last: true
+    unawaited_futures: true

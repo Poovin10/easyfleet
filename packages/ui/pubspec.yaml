@@ -1,0 +1,19 @@
+name: easyfleet_ui
+description: Shared EasyFleet design system and reusable widgets.
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.14.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  in_app_update: ^5.0.0
+  easyfleet_core:
+    path: ../core
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

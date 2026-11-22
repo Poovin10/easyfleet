@@ -1,0 +1,21 @@
+name: easyfleet_maps
+description: Live fleet map and trip route widgets for EasyFleet apps.
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.14.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  google_maps_flutter: ^2.19.0
+  easyfleet_core:
+    path: ../core
+  easyfleet_domain:
+    path: ../domain
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

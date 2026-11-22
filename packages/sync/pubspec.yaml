@@ -1,0 +1,26 @@
+name: easyfleet_sync
+description: Offline outbox and location breadcrumb synchronisation for EasyFleet apps.
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.14.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^3.5.0
+  dio: ^5.11.1
+  sqflite: ^2.4.6
+  path_provider: ^2.1.6
+  easyfleet_core:
+    path: ../core
+  easyfleet_network:
+    path: ../network
+  easyfleet_domain:
+    path: ../domain
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
