@@ -34,7 +34,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _error = null;
     });
     try {
-      await ref.read(authControllerProvider.notifier).signInWithPassword(
+      await ref
+          .read(authControllerProvider.notifier)
+          .signInWithPassword(
             email: _emailController.text.trim(),
             password: _passwordController.text,
           );
@@ -61,9 +63,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(Icons.local_shipping, size: 64, color: Theme.of(context).colorScheme.primary),
+                  Icon(
+                    Icons.local_shipping,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   const SizedBox(height: AppSpacing.lg),
-                  Text(widget.appName, style: Theme.of(context).textTheme.headlineMedium),
+                  Text(
+                    widget.appName,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
                   const SizedBox(height: AppSpacing.xl),
                   TextFormField(
                     controller: _emailController,
@@ -84,7 +93,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: AppSpacing.md),
-                    Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                    Text(
+                      _error!,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
                   ],
                   const SizedBox(height: AppSpacing.lg),
                   FilledButton(

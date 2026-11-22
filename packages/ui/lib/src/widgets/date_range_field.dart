@@ -17,10 +17,13 @@ class DateRangeField extends StatelessWidget {
     final text = range == null
         ? 'Select range'
         : '${MaterialLocalizations.of(context).formatShortDate(range!.start)} – '
-            '${MaterialLocalizations.of(context).formatShortDate(range!.end)}';
+              '${MaterialLocalizations.of(context).formatShortDate(range!.end)}';
 
     return InputDecorator(
-      decoration: InputDecoration(labelText: label, suffixIcon: const Icon(Icons.date_range)),
+      decoration: InputDecoration(
+        labelText: label,
+        suffixIcon: const Icon(Icons.date_range),
+      ),
       child: InkWell(
         onTap: () async {
           final picked = await showDateRangePicker(

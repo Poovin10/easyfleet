@@ -49,7 +49,10 @@ class _LiveFleetMapState extends State<LiveFleetMap> {
   @override
   Widget build(BuildContext context) {
     return GoogleMap(
-      initialCameraPosition: CameraPosition(target: widget.initialTarget, zoom: 5),
+      initialCameraPosition: CameraPosition(
+        target: widget.initialTarget,
+        zoom: 5,
+      ),
       onMapCreated: (controller) => _controller = controller,
       markers: _markers,
       myLocationEnabled: true,

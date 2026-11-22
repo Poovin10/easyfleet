@@ -76,7 +76,11 @@ class OutboxRepository {
   }
 
   Future<void> markFailed(int id, String error) async {
-    final entry = await _database.query(table, where: 'id = ?', whereArgs: [id]);
+    final entry = await _database.query(
+      table,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
     final attempts = (entry.first['attempts'] as int? ?? 0) + 1;
     await _database.update(
       table,

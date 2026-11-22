@@ -28,11 +28,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: AppRoutes.splash,
-        builder: (context, state) => const SplashScreen(appName: 'EasyFleet Driver'),
+        builder: (context, state) =>
+            const SplashScreen(appName: 'EasyFleet Driver'),
       ),
       GoRoute(
         path: AppRoutes.login,
-        builder: (context, state) => const LoginScreen(appName: 'EasyFleet Driver'),
+        builder: (context, state) =>
+            const LoginScreen(appName: 'EasyFleet Driver'),
       ),
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
@@ -119,7 +121,11 @@ class DriverShell extends StatelessWidget {
     (path: AppRoutes.jobs, label: 'Jobs', icon: Icons.work_outline),
     (path: AppRoutes.trips, label: 'Trips', icon: Icons.route_outlined),
     (path: AppRoutes.liveTracking, label: 'Map', icon: Icons.map_outlined),
-    (path: AppRoutes.settings, label: 'Settings', icon: Icons.settings_outlined),
+    (
+      path: AppRoutes.settings,
+      label: 'Settings',
+      icon: Icons.settings_outlined,
+    ),
   ];
 
   int _currentIndex(BuildContext context) {

@@ -67,7 +67,10 @@ class _TripRouteMapState extends State<TripRouteMap> {
     return Stack(
       children: [
         GoogleMap(
-          initialCameraPosition: const CameraPosition(target: LatLng(20.5937, 78.9629), zoom: 5),
+          initialCameraPosition: const CameraPosition(
+            target: LatLng(20.5937, 78.9629),
+            zoom: 5,
+          ),
           onMapCreated: (controller) => _controller = controller,
           polylines: _polylines,
           markers: _markers,

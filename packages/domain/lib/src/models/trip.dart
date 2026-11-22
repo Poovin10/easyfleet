@@ -13,6 +13,7 @@ abstract class Trip with _$Trip {
     String? driverId,
     String? transporterId,
     String? assignmentId,
+
     /// Tracker IMEI when this trip is being followed by a transporter GPS device.
     String? gpsDeviceId,
     String? partyName,

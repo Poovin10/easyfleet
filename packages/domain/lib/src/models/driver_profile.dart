@@ -10,11 +10,14 @@ abstract class DriverProfile with _$DriverProfile {
   const factory DriverProfile({
     required String id,
     required String displayName,
+
     /// Globally unique driver licence number — the driver's primary identity.
     required String dlNumber,
     required LicenseClass licenseClass,
+
     /// Years of experience keyed by vehicle category (bulker, oil tanker, …).
-    @Default(<VehicleCategory, int>{}) Map<VehicleCategory, int> experienceByVehicle,
+    @Default(<VehicleCategory, int>{})
+    Map<VehicleCategory, int> experienceByVehicle,
     required VerificationStatus dlVerification,
     String? dlDocumentUrl,
     String? email,

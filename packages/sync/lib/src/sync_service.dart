@@ -53,7 +53,10 @@ class SyncService {
         synced++;
       } on DioException catch (error) {
         debugPrint('Sync failed for ${entry.idempotencyKey}: ${error.message}');
-        await _repository.markFailed(entry.id!, error.message ?? 'unknown error');
+        await _repository.markFailed(
+          entry.id!,
+          error.message ?? 'unknown error',
+        );
       }
     }
 

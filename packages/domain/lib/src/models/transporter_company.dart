@@ -9,6 +9,7 @@ part 'transporter_company.g.dart';
 abstract class TransporterCompany with _$TransporterCompany {
   const factory TransporterCompany({
     required String id,
+
     /// Globally unique GSTIN — the transporter's primary identity.
     required String gst,
     required String legalName,

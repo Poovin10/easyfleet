@@ -26,16 +26,16 @@ class OutboxEntry {
   final String? lastError;
 
   Map<String, dynamic> toMap() => {
-        if (id != null) 'id': id,
-        'table_name': table,
-        'operation': operation.name,
-        'payload': payload,
-        'idempotency_key': idempotencyKey,
-        'created_at': createdAt.toIso8601String(),
-        'attempts': attempts,
-        'status': status.name,
-        'last_error': lastError,
-      };
+    if (id != null) 'id': id,
+    'table_name': table,
+    'operation': operation.name,
+    'payload': payload,
+    'idempotency_key': idempotencyKey,
+    'created_at': createdAt.toIso8601String(),
+    'attempts': attempts,
+    'status': status.name,
+    'last_error': lastError,
+  };
 
   factory OutboxEntry.fromMap(Map<String, dynamic> map) {
     return OutboxEntry(

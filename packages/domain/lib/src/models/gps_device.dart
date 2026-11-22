@@ -10,6 +10,7 @@ part 'gps_device.g.dart';
 abstract class GpsDevice with _$GpsDevice {
   const factory GpsDevice({
     required String id,
+
     /// Tracker IMEI, globally unique.
     required String imei,
     required String transporterId,

@@ -63,9 +63,16 @@ class AppSectionCard extends StatelessWidget {
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
       ),
-      child: Padding(padding: const EdgeInsets.all(AppSpacing.md), child: child),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: child,
+      ),
     );
     if (onTap == null) return card;
-    return InkWell(onTap: onTap, borderRadius: BorderRadius.circular(AppRadius.md), child: card);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: card,
+    );
   }
 }

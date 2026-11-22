@@ -27,7 +27,8 @@ class OnboardingService {
     required Uint8List bytes,
     required String extension,
   }) async {
-    final path = '$userId/$kind-${DateTime.now().microsecondsSinceEpoch}.$extension';
+    final path =
+        '$userId/$kind-${DateTime.now().microsecondsSinceEpoch}.$extension';
     await _client.storage.from(_bucket).uploadBinary(path, bytes);
     return _client.storage.from(_bucket).getPublicUrl(path);
   }
@@ -67,10 +68,13 @@ class OnboardingService {
     required bool isTransporter,
   }) async {
     final row = await _client
-        .from(isTransporter ? Tables.transporterCompanies : Tables.driverProfiles)
+        .from(
+          isTransporter ? Tables.transporterCompanies : Tables.driverProfiles,
+        )
         .select(isTransporter ? 'gst_verification' : 'dl_verification')
         .eq('id', userId)
         .single();
-    return row[isTransporter ? 'gst_verification' : 'dl_verification'] as String;
+    return row[isTransporter ? 'gst_verification' : 'dl_verification']
+        as String;
   }
 }

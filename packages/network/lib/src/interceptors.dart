@@ -59,7 +59,10 @@ class ConnectivityInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (!_isOnline()) {
       handler.reject(
-        DioException(requestOptions: options, error: const NoConnectionException()),
+        DioException(
+          requestOptions: options,
+          error: const NoConnectionException(),
+        ),
       );
       return;
     }
@@ -91,7 +94,8 @@ class PasswordChangeInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    if (response.statusCode == 428 || response.headers.value('x-password-change') == 'true') {
+    if (response.statusCode == 428 ||
+        response.headers.value('x-password-change') == 'true') {
       onPasswordChangeRequired();
     }
     super.onResponse(response, handler);

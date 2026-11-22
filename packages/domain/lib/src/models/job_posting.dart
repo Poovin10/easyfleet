@@ -12,8 +12,10 @@ abstract class JobPosting with _$JobPosting {
     required String transporterId,
     required String title,
     required Set<LicenseClass> requiredLicenseClasses,
+
     /// Minimum years of experience per vehicle category.
-    @Default(<VehicleCategory, int>{}) Map<VehicleCategory, int> requiredExperience,
+    @Default(<VehicleCategory, int>{})
+    Map<VehicleCategory, int> requiredExperience,
     VehicleCategory? vehicleCategory,
     String? pickupLocation,
     String? dropLocation,

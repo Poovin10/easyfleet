@@ -24,7 +24,10 @@ class MarketplaceService {
     var query = _client.from(Tables.jobPostings).select().eq('status', 'open');
 
     if (licenseClasses != null && licenseClasses.isNotEmpty) {
-      query = query.overlaps('required_license_classes', licenseClasses.map((e) => e.name).toList());
+      query = query.overlaps(
+        'required_license_classes',
+        licenseClasses.map((e) => e.name).toList(),
+      );
     }
     if (vehicleCategory != null) {
       query = query.eq('vehicle_category', vehicleCategory.name);
@@ -42,7 +45,9 @@ class MarketplaceService {
       'id': job.id,
       'transporter_id': job.transporterId,
       'title': job.title,
-      'required_license_classes': job.requiredLicenseClasses.map((e) => e.name).toList(),
+      'required_license_classes': job.requiredLicenseClasses
+          .map((e) => e.name)
+          .toList(),
       'required_experience': job.requiredExperience.map(
         (key, value) => MapEntry(key.name, value),
       ),
@@ -98,16 +103,20 @@ class MarketplaceService {
     String? vehicleNumber,
   }) async {
     final id = DateTime.now().microsecondsSinceEpoch.toString();
-    final row = await _client.from(Tables.assignments).insert({
-      'id': id,
-      'driver_id': driverId,
-      'transporter_id': transporterId,
-      'job_id': jobId,
-      'application_id': applicationId,
-      'status': 'active',
-      'appointed_at': DateTime.now().toIso8601String(),
-      'vehicle_number': vehicleNumber,
-    }).select().single();
+    final row = await _client
+        .from(Tables.assignments)
+        .insert({
+          'id': id,
+          'driver_id': driverId,
+          'transporter_id': transporterId,
+          'job_id': jobId,
+          'application_id': applicationId,
+          'status': 'active',
+          'appointed_at': DateTime.now().toIso8601String(),
+          'vehicle_number': vehicleNumber,
+        })
+        .select()
+        .single();
 
     if (applicationId != null) {
       await _client
@@ -125,12 +134,17 @@ class MarketplaceService {
     return _client
         .from(Tables.assignments)
         .stream(primaryKey: ['id'])
-        .map((rows) => rows
-            .where(
-              (row) => row['driver_id'] == userId || row['transporter_id'] == userId,
-            )
-            .toList());
+        .map(
+          (rows) => rows
+              .where(
+                (row) =>
+                    row['driver_id'] == userId ||
+                    row['transporter_id'] == userId,
+              )
+              .toList(),
+        );
   }
 
-  Map<String, dynamic> _normalize(Map<String, dynamic> row) => Map<String, dynamic>.from(row);
+  Map<String, dynamic> _normalize(Map<String, dynamic> row) =>
+      Map<String, dynamic>.from(row);
 }

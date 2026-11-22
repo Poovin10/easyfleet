@@ -28,11 +28,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: AppRoutes.splash,
-        builder: (context, state) => const SplashScreen(appName: 'EasyFleet Transporter'),
+        builder: (context, state) =>
+            const SplashScreen(appName: 'EasyFleet Transporter'),
       ),
       GoRoute(
         path: AppRoutes.login,
-        builder: (context, state) => const LoginScreen(appName: 'EasyFleet Transporter'),
+        builder: (context, state) =>
+            const LoginScreen(appName: 'EasyFleet Transporter'),
       ),
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
@@ -114,10 +116,22 @@ class TransporterShell extends StatelessWidget {
 
   static const _destinations = [
     (path: AppRoutes.home, label: 'Home', icon: Icons.home_outlined),
-    (path: AppRoutes.candidates, label: 'Hire', icon: Icons.person_search_outlined),
-    (path: AppRoutes.assignments, label: 'Drivers', icon: Icons.handshake_outlined),
+    (
+      path: AppRoutes.candidates,
+      label: 'Hire',
+      icon: Icons.person_search_outlined,
+    ),
+    (
+      path: AppRoutes.assignments,
+      label: 'Drivers',
+      icon: Icons.handshake_outlined,
+    ),
     (path: AppRoutes.fleetMap, label: 'Map', icon: Icons.map_outlined),
-    (path: AppRoutes.settings, label: 'Settings', icon: Icons.settings_outlined),
+    (
+      path: AppRoutes.settings,
+      label: 'Settings',
+      icon: Icons.settings_outlined,
+    ),
   ];
 
   int _currentIndex(BuildContext context) {

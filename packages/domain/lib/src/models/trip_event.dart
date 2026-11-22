@@ -18,5 +18,6 @@ abstract class TripEvent with _$TripEvent {
     double? longitude,
   }) = _TripEvent;
 
-  factory TripEvent.fromJson(Map<String, dynamic> json) => _$TripEventFromJson(json);
+  factory TripEvent.fromJson(Map<String, dynamic> json) =>
+      _$TripEventFromJson(json);
 }

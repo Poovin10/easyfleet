@@ -17,22 +17,23 @@ class SupabaseDataSource {
   }) async {
     final response = await _dio.get<Map<String, dynamic>>(
       '/rest/v1/$table',
-      queryParameters: {
-        'select': ?select,
-        ...?filters,
-      },
+      queryParameters: {'select': ?select, ...?filters},
     );
     final data = response.data;
     if (data == null) return const [];
     // Supabase REST returns a JSON array; Dio decodes it as List<dynamic>.
-    final list = (data is List
-            ? data
-            : (data as Map)['items'] as List<dynamic>? ?? const <dynamic>[])
-        as List<dynamic>;
+    final list =
+        (data is List
+                ? data
+                : (data as Map)['items'] as List<dynamic>? ?? const <dynamic>[])
+            as List<dynamic>;
     return list.cast<Map<String, dynamic>>();
   }
 
-  Future<Map<String, dynamic>> rpc(String name, [Map<String, dynamic>? body]) async {
+  Future<Map<String, dynamic>> rpc(
+    String name, [
+    Map<String, dynamic>? body,
+  ]) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/rest/v1/rpc/$name',
       data: body ?? const <String, dynamic>{},

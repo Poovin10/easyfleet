@@ -40,7 +40,9 @@ class OnboardingState {
 
 /// Drives DL (driver) and GST (transporter) onboarding with manual approval.
 final onboardingControllerProvider =
-    NotifierProvider<OnboardingController, OnboardingState>(OnboardingController.new);
+    NotifierProvider<OnboardingController, OnboardingState>(
+      OnboardingController.new,
+    );
 
 class OnboardingController extends Notifier<OnboardingState> {
   @override
@@ -51,11 +53,15 @@ class OnboardingController extends Notifier<OnboardingState> {
     final userId = auth.userId;
     if (userId == null) return;
 
-    final status = await ref.read(onboardingServiceProvider).verificationStatus(
+    final status = await ref
+        .read(onboardingServiceProvider)
+        .verificationStatus(
           userId: userId,
           isTransporter: state.role == OnboardingRole.transporter,
         );
-    state = state.copyWith(verification: VerificationStatus.values.byName(status));
+    state = state.copyWith(
+      verification: VerificationStatus.values.byName(status),
+    );
   }
 
   Future<void> submitDriverDl({
@@ -104,7 +110,10 @@ class OnboardingController extends Notifier<OnboardingState> {
     });
   }
 
-  Future<void> _submit(OnboardingRole role, Future<void> Function() action) async {
+  Future<void> _submit(
+    OnboardingRole role,
+    Future<void> Function() action,
+  ) async {
     state = state.copyWith(role: role, isSubmitting: true, error: null);
     try {
       await action();

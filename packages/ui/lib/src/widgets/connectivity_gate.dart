@@ -33,7 +33,9 @@ class ConnectivityGate extends StatelessWidget {
                   ),
                   title: Text(
                     offlineMessage,
-                    style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
                   ),
                 ),
               ),

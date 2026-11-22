@@ -6,7 +6,9 @@ void main() {
   test('driver app compiles and deep links parse', () {
     expect(const DriverApp(), isA<DriverApp>());
     expect(
-      DeepLinks.tripIdFromUri(Uri.parse('https://app.easyfleet.in/trip/trip-42')),
+      DeepLinks.tripIdFromUri(
+        Uri.parse('https://app.easyfleet.in/trip/trip-42'),
+      ),
       'trip-42',
     );
   });

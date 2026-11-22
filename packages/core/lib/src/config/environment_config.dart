@@ -14,7 +14,10 @@ class EnvironmentConfig {
 
   /// Resolved from `--dart-define=APP_FLAVOR=dev|staging|prod`.
   factory EnvironmentConfig.fromEnvironment() {
-    final flavorName = const String.fromEnvironment('APP_FLAVOR', defaultValue: 'prod');
+    final flavorName = const String.fromEnvironment(
+      'APP_FLAVOR',
+      defaultValue: 'prod',
+    );
     final flavor = AppFlavorX.fromName(flavorName) ?? AppFlavor.prod;
 
     return EnvironmentConfig._(
@@ -61,4 +64,6 @@ extension AppFlavorX on AppFlavor {
 }
 
 /// Provider used throughout the app tree.
-final environmentProvider = Provider<EnvironmentConfig>((ref) => EnvironmentConfig.instance);
+final environmentProvider = Provider<EnvironmentConfig>(
+  (ref) => EnvironmentConfig.instance,
+);

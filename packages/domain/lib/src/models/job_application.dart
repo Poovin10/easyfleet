@@ -14,8 +14,10 @@ abstract class JobApplication with _$JobApplication {
     required ApplicationStatus status,
     required DateTime appliedAt,
     String? coverNote,
+
     /// Snapshot of the driver's declared experience at application time.
-    @Default(<VehicleCategory, int>{}) Map<VehicleCategory, int> experienceSnapshot,
+    @Default(<VehicleCategory, int>{})
+    Map<VehicleCategory, int> experienceSnapshot,
     String? assignmentId,
   }) = _JobApplication;
 

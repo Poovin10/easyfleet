@@ -42,7 +42,9 @@ class GpsDeviceService {
   }
 
   /// Device positions and phone breadcrumbs are merged by the maps package.
-  Stream<List<Map<String, dynamic>>> watchDevicePositions(String transporterId) {
+  Stream<List<Map<String, dynamic>>> watchDevicePositions(
+    String transporterId,
+  ) {
     return _client
         .from(Tables.gpsPositions)
         .stream(primaryKey: ['id'])

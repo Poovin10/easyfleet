@@ -67,7 +67,9 @@ class _ForceUpdateGateState extends State<ForceUpdateGate> {
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 8),
-              Text('Install version ${widget.minimumVersion} or newer to continue.'),
+              Text(
+                'Install version ${widget.minimumVersion} or newer to continue.',
+              ),
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: _requestUpdate,
