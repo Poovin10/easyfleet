@@ -23,5 +23,45 @@
   "vehicles": "వాహనాలు",
   "dispatch": "డిస్పాచ్",
   "loadingReceipts": "లోడింగ్ రసీదులు",
-  "unloadTrips": "అన్‍లోడ్ ట్రిప్‍లు"
+  "unloadTrips": "అన్‍లోడ్ ట్రిప్‍లు",
+  "signUp": "సైన్ అప్",
+  "@signUp": {
+    "description": "signUp"
+  },
+  "fullName": "పూర్తి పేరు",
+  "@fullName": {
+    "description": "fullName"
+  },
+  "confirmPassword": "పాస్‍వర్డ్ నిర్ధారించండి",
+  "@confirmPassword": {
+    "description": "confirmPassword"
+  },
+  "alreadyHaveAccount": "ఇప్పటికే ఖాతా ఉందా? సైన్ ఇన్ చేయండి",
+  "@alreadyHaveAccount": {
+    "description": "alreadyHaveAccount"
+  },
+  "dontHaveAccount": "ఖాతా లేదా? సైన్ అప్ చేయండి",
+  "@dontHaveAccount": {
+    "description": "dontHaveAccount"
+  },
+  "checkYourEmail": "ఖాతా సృష్టించబడింది. ధృవీకరించడానికి మీ ఇమెయిల్ తనిఖీ చేసి, తర్వాత సైన్ ఇన్ చేయండి.",
+  "@checkYourEmail": {
+    "description": "checkYourEmail"
+  },
+  "signUpSuccess": "ఖాతా సృష్టించబడింది.",
+  "@signUpSuccess": {
+    "description": "signUpSuccess"
+  },
+  "nameRequired": "మీ పేరు నమోదు చేయండి",
+  "@nameRequired": {
+    "description": "nameRequired"
+  },
+  "passwordTooShort": "కనీసం 6 అక్షరాలు ఉపయోగించండి",
+  "@passwordTooShort": {
+    "description": "passwordTooShort"
+  },
+  "passwordMismatch": "పాస్‍వర్డ్‍లు సరిపోలడం లేదు",
+  "@passwordMismatch": {
+    "description": "passwordMismatch"
+  }
 }

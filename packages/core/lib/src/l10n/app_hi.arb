@@ -23,5 +23,45 @@
   "vehicles": "वाहन",
   "dispatch": "डिस्पैच",
   "loadingReceipts": "लोडिंग रिसीट",
-  "unloadTrips": "अनलोड यात्राएँ"
+  "unloadTrips": "अनलोड यात्राएँ",
+  "signUp": "साइन अप",
+  "@signUp": {
+    "description": "signUp"
+  },
+  "fullName": "पूरा नाम",
+  "@fullName": {
+    "description": "fullName"
+  },
+  "confirmPassword": "पासवर्ड की पुष्टि करें",
+  "@confirmPassword": {
+    "description": "confirmPassword"
+  },
+  "alreadyHaveAccount": "पहले से खाता है? साइन इन करें",
+  "@alreadyHaveAccount": {
+    "description": "alreadyHaveAccount"
+  },
+  "dontHaveAccount": "खाता नहीं है? साइन अप करें",
+  "@dontHaveAccount": {
+    "description": "dontHaveAccount"
+  },
+  "checkYourEmail": "खाता बन गया। पुष्टि के लिए अपना ईमेल देखें, फिर साइन इन करें।",
+  "@checkYourEmail": {
+    "description": "checkYourEmail"
+  },
+  "signUpSuccess": "खाता बन गया।",
+  "@signUpSuccess": {
+    "description": "signUpSuccess"
+  },
+  "nameRequired": "अपना नाम दर्ज करें",
+  "@nameRequired": {
+    "description": "nameRequired"
+  },
+  "passwordTooShort": "कम से कम 6 अक्षर लगाएँ",
+  "@passwordTooShort": {
+    "description": "passwordTooShort"
+  },
+  "passwordMismatch": "पासवर्ड मेल नहीं खाते",
+  "@passwordMismatch": {
+    "description": "passwordMismatch"
+  }
 }

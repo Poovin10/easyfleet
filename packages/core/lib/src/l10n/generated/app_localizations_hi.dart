@@ -80,4 +80,35 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get unloadTrips => 'अनलोड यात्राएँ';
+
+  @override
+  String get signUp => 'साइन अप';
+
+  @override
+  String get fullName => 'पूरा नाम';
+
+  @override
+  String get confirmPassword => 'पासवर्ड की पुष्टि करें';
+
+  @override
+  String get alreadyHaveAccount => 'पहले से खाता है? साइन इन करें';
+
+  @override
+  String get dontHaveAccount => 'खाता नहीं है? साइन अप करें';
+
+  @override
+  String get checkYourEmail =>
+      'खाता बन गया। पुष्टि के लिए अपना ईमेल देखें, फिर साइन इन करें।';
+
+  @override
+  String get signUpSuccess => 'खाता बन गया।';
+
+  @override
+  String get nameRequired => 'अपना नाम दर्ज करें';
+
+  @override
+  String get passwordTooShort => 'कम से कम 6 अक्षर लगाएँ';
+
+  @override
+  String get passwordMismatch => 'पासवर्ड मेल नहीं खाते';
 }

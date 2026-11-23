@@ -95,5 +95,45 @@
   "unloadTrips": "Unload trips",
   "@unloadTrips": {
     "description": "unloadTrips"
+  },
+  "signUp": "Sign up",
+  "@signUp": {
+    "description": "signUp"
+  },
+  "fullName": "Full name",
+  "@fullName": {
+    "description": "fullName"
+  },
+  "confirmPassword": "Confirm password",
+  "@confirmPassword": {
+    "description": "confirmPassword"
+  },
+  "alreadyHaveAccount": "Already have an account? Sign in",
+  "@alreadyHaveAccount": {
+    "description": "alreadyHaveAccount"
+  },
+  "dontHaveAccount": "Don't have an account? Sign up",
+  "@dontHaveAccount": {
+    "description": "dontHaveAccount"
+  },
+  "checkYourEmail": "Account created. Check your email to confirm, then sign in.",
+  "@checkYourEmail": {
+    "description": "checkYourEmail"
+  },
+  "signUpSuccess": "Account created.",
+  "@signUpSuccess": {
+    "description": "signUpSuccess"
+  },
+  "nameRequired": "Enter your name",
+  "@nameRequired": {
+    "description": "nameRequired"
+  },
+  "passwordTooShort": "Use at least 6 characters",
+  "@passwordTooShort": {
+    "description": "passwordTooShort"
+  },
+  "passwordMismatch": "Passwords do not match",
+  "@passwordMismatch": {
+    "description": "passwordMismatch"
   }
 }

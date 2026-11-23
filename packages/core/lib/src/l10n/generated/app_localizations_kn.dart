@@ -80,4 +80,35 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get unloadTrips => 'ಇಳಿಸುವ ಪ್ರಯಾಣಗಳು';
+
+  @override
+  String get signUp => 'ಸೈನ್ ಅಪ್';
+
+  @override
+  String get fullName => 'ಪೂರ್ಣ ಹೆಸರು';
+
+  @override
+  String get confirmPassword => 'ಪಾಸ್‍ವರ್ಡ್ ದೃಢೀಕರಿಸಿ';
+
+  @override
+  String get alreadyHaveAccount => 'ಈಗಾಗಲೇ ಖಾತೆ ಇದೆಯೇ? ಸೈನ್ ಇನ್ ಮಾಡಿ';
+
+  @override
+  String get dontHaveAccount => 'ಖಾತೆ ಇಲ್ಲವೇ? ಸೈನ್ ಅಪ್ ಮಾಡಿ';
+
+  @override
+  String get checkYourEmail =>
+      'ಖಾತೆ ರಚಿಸಲಾಗಿದೆ. ದೃಢೀಕರಣಕ್ಕಾಗಿ ನಿಮ್ಮ ಇಮೆಯಿಲ್ ಪರಿಶೀಲಿಸಿ, ನಂತರ ಸೈನ್ ಇನ್ ಮಾಡಿ.';
+
+  @override
+  String get signUpSuccess => 'ಖಾತೆ ರಚಿಸಲಾಗಿದೆ.';
+
+  @override
+  String get nameRequired => 'ನಿಮ್ಮ ಹೆಸರನ್ನು ನಮೂದಿಸಿ';
+
+  @override
+  String get passwordTooShort => 'ಕನಿಷ್ಠ 6 ಅಕ್ಷರಗಳನ್ನು ಬಳಸಿ';
+
+  @override
+  String get passwordMismatch => 'ಪಾಸ್‍ವರ್ಡ್‍ಗಳು ಹೊಂದಾಣಿಕೆಯಾಗುತ್ತಿಲ್ಲ';
 }

@@ -80,4 +80,35 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get unloadTrips => 'Descargas';
+
+  @override
+  String get signUp => 'Registrarse';
+
+  @override
+  String get fullName => 'Nombre completo';
+
+  @override
+  String get confirmPassword => 'Confirmar contraseña';
+
+  @override
+  String get alreadyHaveAccount => '¿Ya tienes una cuenta? Inicia sesión';
+
+  @override
+  String get dontHaveAccount => '¿No tienes una cuenta? Regístrate';
+
+  @override
+  String get checkYourEmail =>
+      'Cuenta creada. Revisa tu correo para confirmarla y luego inicia sesión.';
+
+  @override
+  String get signUpSuccess => 'Cuenta creada.';
+
+  @override
+  String get nameRequired => 'Introduce tu nombre';
+
+  @override
+  String get passwordTooShort => 'Usa al menos 6 caracteres';
+
+  @override
+  String get passwordMismatch => 'Las contraseñas no coinciden';
 }

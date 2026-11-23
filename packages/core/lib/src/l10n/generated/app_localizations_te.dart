@@ -80,4 +80,35 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get unloadTrips => 'అన్‍లోడ్ ట్రిప్‍లు';
+
+  @override
+  String get signUp => 'సైన్ అప్';
+
+  @override
+  String get fullName => 'పూర్తి పేరు';
+
+  @override
+  String get confirmPassword => 'పాస్‍వర్డ్ నిర్ధారించండి';
+
+  @override
+  String get alreadyHaveAccount => 'ఇప్పటికే ఖాతా ఉందా? సైన్ ఇన్ చేయండి';
+
+  @override
+  String get dontHaveAccount => 'ఖాతా లేదా? సైన్ అప్ చేయండి';
+
+  @override
+  String get checkYourEmail =>
+      'ఖాతా సృష్టించబడింది. ధృవీకరించడానికి మీ ఇమెయిల్ తనిఖీ చేసి, తర్వాత సైన్ ఇన్ చేయండి.';
+
+  @override
+  String get signUpSuccess => 'ఖాతా సృష్టించబడింది.';
+
+  @override
+  String get nameRequired => 'మీ పేరు నమోదు చేయండి';
+
+  @override
+  String get passwordTooShort => 'కనీసం 6 అక్షరాలు ఉపయోగించండి';
+
+  @override
+  String get passwordMismatch => 'పాస్‍వర్డ్‍లు సరిపోలడం లేదు';
 }

@@ -34,7 +34,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.login,
         builder: (context, state) =>
-            const LoginScreen(appName: 'EasyFleet Driver'),
+            const LoginScreen(appName: 'EasyFleet Driver', enableSignUp: true),
       ),
       ShellRoute(
         navigatorKey: _shellNavigatorKey,

@@ -251,6 +251,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unload trips'**
   String get unloadTrips;
+
+  /// signUp
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get signUp;
+
+  /// fullName
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get fullName;
+
+  /// confirmPassword
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get confirmPassword;
+
+  /// alreadyHaveAccount
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? Sign in'**
+  String get alreadyHaveAccount;
+
+  /// dontHaveAccount
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account? Sign up'**
+  String get dontHaveAccount;
+
+  /// checkYourEmail
+  ///
+  /// In en, this message translates to:
+  /// **'Account created. Check your email to confirm, then sign in.'**
+  String get checkYourEmail;
+
+  /// signUpSuccess
+  ///
+  /// In en, this message translates to:
+  /// **'Account created.'**
+  String get signUpSuccess;
+
+  /// nameRequired
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your name'**
+  String get nameRequired;
+
+  /// passwordTooShort
+  ///
+  /// In en, this message translates to:
+  /// **'Use at least 6 characters'**
+  String get passwordTooShort;
+
+  /// passwordMismatch
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordMismatch;
 }
 
 class _AppLocalizationsDelegate

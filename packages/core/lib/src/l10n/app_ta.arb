@@ -23,5 +23,45 @@
   "vehicles": "வாகனங்கள்",
   "dispatch": "அனுப்புதல்",
   "loadingReceipts": "ஏற்றும் ரசீதுகள்",
-  "unloadTrips": "இறக்கும் பயணங்கள்"
+  "unloadTrips": "இறக்கும் பயணங்கள்",
+  "signUp": "பதிவு செய்",
+  "@signUp": {
+    "description": "signUp"
+  },
+  "fullName": "முழு பெயர்",
+  "@fullName": {
+    "description": "fullName"
+  },
+  "confirmPassword": "கடவுச்சொல்லை உறுதிப்படுத்தவும்",
+  "@confirmPassword": {
+    "description": "confirmPassword"
+  },
+  "alreadyHaveAccount": "ஏற்கனவே கணக்கு உள்ளதா? உள்நுழைய",
+  "@alreadyHaveAccount": {
+    "description": "alreadyHaveAccount"
+  },
+  "dontHaveAccount": "கணக்கு இல்லையா? பதிவு செய்",
+  "@dontHaveAccount": {
+    "description": "dontHaveAccount"
+  },
+  "checkYourEmail": "கணக்கு உருவானது. உறுதிப்படுத்த உங்கள் மின்னஞ்சலைப் பார்க்கவும், பிறகு உள்நுழையவும்.",
+  "@checkYourEmail": {
+    "description": "checkYourEmail"
+  },
+  "signUpSuccess": "கணக்கு உருவானது.",
+  "@signUpSuccess": {
+    "description": "signUpSuccess"
+  },
+  "nameRequired": "உங்கள் பெயரை உள்ளிடவும்",
+  "@nameRequired": {
+    "description": "nameRequired"
+  },
+  "passwordTooShort": "குறைந்தது 6 எழுத்துகள் பயன்படுத்தவும்",
+  "@passwordTooShort": {
+    "description": "passwordTooShort"
+  },
+  "passwordMismatch": "கடவுச்சொற்கள் பொருந்தவில்லை",
+  "@passwordMismatch": {
+    "description": "passwordMismatch"
+  }
 }

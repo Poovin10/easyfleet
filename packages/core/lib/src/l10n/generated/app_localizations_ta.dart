@@ -80,4 +80,35 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get unloadTrips => 'இறக்கும் பயணங்கள்';
+
+  @override
+  String get signUp => 'பதிவு செய்';
+
+  @override
+  String get fullName => 'முழு பெயர்';
+
+  @override
+  String get confirmPassword => 'கடவுச்சொல்லை உறுதிப்படுத்தவும்';
+
+  @override
+  String get alreadyHaveAccount => 'ஏற்கனவே கணக்கு உள்ளதா? உள்நுழைய';
+
+  @override
+  String get dontHaveAccount => 'கணக்கு இல்லையா? பதிவு செய்';
+
+  @override
+  String get checkYourEmail =>
+      'கணக்கு உருவானது. உறுதிப்படுத்த உங்கள் மின்னஞ்சலைப் பார்க்கவும், பிறகு உள்நுழையவும்.';
+
+  @override
+  String get signUpSuccess => 'கணக்கு உருவானது.';
+
+  @override
+  String get nameRequired => 'உங்கள் பெயரை உள்ளிடவும்';
+
+  @override
+  String get passwordTooShort => 'குறைந்தது 6 எழுத்துகள் பயன்படுத்தவும்';
+
+  @override
+  String get passwordMismatch => 'கடவுச்சொற்கள் பொருந்தவில்லை';
 }

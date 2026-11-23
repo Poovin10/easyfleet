@@ -80,4 +80,35 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get unloadTrips => 'അൺലോഡ് യാത്രകൾ';
+
+  @override
+  String get signUp => 'സൈൻ അപ്പ്';
+
+  @override
+  String get fullName => 'പൂർണ്ണ പേര്';
+
+  @override
+  String get confirmPassword => 'പാസ്‍വേഡ് സ്ഥിരീകരിക്കുക';
+
+  @override
+  String get alreadyHaveAccount => 'ഇതിനകം അക്കൗണ്ട് ഉണ്ടോ? സൈൻ ഇൻ ചെയ്യുക';
+
+  @override
+  String get dontHaveAccount => 'അക്കൗണ്ട് ഇല്ലേ? സൈൻ അപ്പ് ചെയ്യുക';
+
+  @override
+  String get checkYourEmail =>
+      'അക്കൗണ്ട് സൃഷ്ടിച്ചു. സ്ഥിരീകരണത്തിനായി നിങ്ങളുടെ ഇമെയിൽ പരിശോധിച്ച് ശേഷം സൈൻ ഇൻ ചെയ്യുക.';
+
+  @override
+  String get signUpSuccess => 'അക്കൗണ്ട് സൃഷ്ടിച്ചു.';
+
+  @override
+  String get nameRequired => 'നിങ്ങളുടെ പേര് നൽകുക';
+
+  @override
+  String get passwordTooShort => 'കുറഞ്ഞത് 6 പ്രതീകങ്ങൾ ഉപയോഗിക്കുക';
+
+  @override
+  String get passwordMismatch => 'പാസ്‍വേഡുകൾ പൊരുത്തപ്പെടുന്നില്ല';
 }

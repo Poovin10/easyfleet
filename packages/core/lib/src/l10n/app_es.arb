@@ -23,5 +23,45 @@
   "vehicles": "Vehículos",
   "dispatch": "Despacho",
   "loadingReceipts": "Recibos de carga",
-  "unloadTrips": "Descargas"
+  "unloadTrips": "Descargas",
+  "signUp": "Registrarse",
+  "@signUp": {
+    "description": "signUp"
+  },
+  "fullName": "Nombre completo",
+  "@fullName": {
+    "description": "fullName"
+  },
+  "confirmPassword": "Confirmar contraseña",
+  "@confirmPassword": {
+    "description": "confirmPassword"
+  },
+  "alreadyHaveAccount": "¿Ya tienes una cuenta? Inicia sesión",
+  "@alreadyHaveAccount": {
+    "description": "alreadyHaveAccount"
+  },
+  "dontHaveAccount": "¿No tienes una cuenta? Regístrate",
+  "@dontHaveAccount": {
+    "description": "dontHaveAccount"
+  },
+  "checkYourEmail": "Cuenta creada. Revisa tu correo para confirmarla y luego inicia sesión.",
+  "@checkYourEmail": {
+    "description": "checkYourEmail"
+  },
+  "signUpSuccess": "Cuenta creada.",
+  "@signUpSuccess": {
+    "description": "signUpSuccess"
+  },
+  "nameRequired": "Introduce tu nombre",
+  "@nameRequired": {
+    "description": "nameRequired"
+  },
+  "passwordTooShort": "Usa al menos 6 caracteres",
+  "@passwordTooShort": {
+    "description": "passwordTooShort"
+  },
+  "passwordMismatch": "Las contraseñas no coinciden",
+  "@passwordMismatch": {
+    "description": "passwordMismatch"
+  }
 }
