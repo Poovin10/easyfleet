@@ -35,9 +35,29 @@ class AuthController extends Notifier<AuthState> {
   Future<void> signInWithPassword({
     required String email,
     required String password,
+    bool createDriverAccountIfMissing = false,
   }) async {
     final client = ref.read(supabaseClientProvider);
     await client.auth.signInWithPassword(email: email, password: password);
+    if (createDriverAccountIfMissing) {
+      await ensureDriverAccount();
+    }
+  }
+
+  /// Ensures the signed-in user has a `driver_accounts` row.
+  ///
+  /// The backend RPC is idempotent and scoped to `auth.uid()`.
+  Future<void> ensureDriverAccount({String? displayName}) async {
+    final client = ref.read(supabaseClientProvider);
+    final user = client.auth.currentUser;
+    final metadataName = user?.userMetadata?['display_name'] as String?;
+    final emailName = user?.email?.split('@').first;
+    final resolved = (displayName ?? metadataName ?? emailName ?? 'Driver')
+        .trim();
+    await client.rpc<void>(
+      'easyfleet_create_driver_account',
+      params: {'p_display_name': resolved.isEmpty ? 'Driver' : resolved},
+    );
   }
 
   /// Creates a driver account with Supabase Auth.
@@ -55,7 +75,11 @@ class AuthController extends Notifier<AuthState> {
       password: password,
       data: {'display_name': displayName.trim(), 'app_role': 'driver'},
     );
-    return response.session != null;
+    final signedInImmediately = response.session != null;
+    if (signedInImmediately) {
+      await ensureDriverAccount(displayName: displayName);
+    }
+    return signedInImmediately;
   }
 
   /// Supabase email OTP replaces WonderMove's Ory Kratos login-link flow.

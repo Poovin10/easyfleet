@@ -61,6 +61,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .signInWithPassword(
             email: _emailController.text.trim(),
             password: _passwordController.text,
+            createDriverAccountIfMissing: widget.enableSignUp,
           );
     } catch (error) {
       if (mounted) setState(() => _error = error.toString());
