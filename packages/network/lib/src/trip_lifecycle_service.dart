@@ -1,63 +1,87 @@
 import 'package:easyfleet_domain/easyfleet_domain.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'supabase_data_source.dart';
-import 'supabase_tables.dart';
+import 'fleet_service.dart';
 
 final tripLifecycleServiceProvider = Provider<TripLifecycleService>((ref) {
-  return TripLifecycleService(ref.watch(supabaseClientProvider));
+  return TripLifecycleService(ref.watch(fleetServiceProvider));
 });
 
-/// Trip history reader aligned to the live schema.
-///
-/// The backend owns lifecycle transitions through SECURITY DEFINER RPCs and
-/// stores history in `fleet_audit_events`. There are no `trips` or
-/// `trip_events` tables. See `MISSING-BACKEND-CAPABILITIES.md` (M-07/M-08).
+/// Trip lifecycle aligned to the backend state machine:
+/// PLANNED -> ASSIGNED -> IN_TRANSIT -> CLOSURE_PENDING -> COMPLETED,
+/// with CANCELLED from PLANNED/ASSIGNED. Transitions are RPC-owned and
+/// idempotent; history is read from `fleet_audit_events` (published).
 class TripLifecycleService {
-  TripLifecycleService(this._client);
+  TripLifecycleService(this._fleet);
 
-  final SupabaseClient _client;
+  final FleetService _fleet;
 
-  static const allowedTransitions = <TripStage, Set<TripStage>>{
-    TripStage.assigned: {TripStage.reporting, TripStage.cancelled},
-    TripStage.reporting: {TripStage.loading, TripStage.cancelled},
-    TripStage.loading: {TripStage.transit, TripStage.cancelled},
-    TripStage.transit: {TripStage.unloading, TripStage.cancelled},
-    TripStage.unloading: {TripStage.podPending, TripStage.cancelled},
-    TripStage.podPending: {TripStage.completed, TripStage.cancelled},
+  static const allowedTransitions = <String, Set<String>>{
+    'PLANNED': {'ASSIGNED', 'CANCELLED'},
+    'ASSIGNED': {'IN_TRANSIT', 'CANCELLED'},
+    'IN_TRANSIT': {'CLOSURE_PENDING'},
+    'CLOSURE_PENDING': {'COMPLETED', 'IN_TRANSIT'},
   };
 
-  bool canAdvance(TripStage current, TripStage next) {
-    return allowedTransitions[current]?.contains(next) ?? false;
-  }
+  bool canAdvance(String current, String next) =>
+      allowedTransitions[current]?.contains(next) ?? false;
 
-  /// Lifecycle writes must use the backend RPCs, not direct table updates.
-  Never advance({
+  Future<void> start({
+    required String companyId,
     required String tripId,
-    required TripStage from,
-    required TripStage to,
-    String? actorId,
-    String? note,
-    double? latitude,
-    double? longitude,
-  }) => throw UnsupportedError(
-    'Direct trip-stage writes are not available. Use '
-    'easyfleet_start_trip, easyfleet_submit_trip_closure, or '
-    'easyfleet_review_trip_closure instead.',
+    int? startingOdometerKm,
+    String? idempotencyKey,
+  }) => _fleet.startTrip(
+    companyId: companyId,
+    tripId: tripId,
+    startingOdometerKm: startingOdometerKm,
+    idempotencyKey: idempotencyKey,
   );
 
-  /// One-shot audit-history read.
-  ///
-  /// `fleet_audit_events` is not in the Realtime publication, so this stream
-  /// delivers the current rows once and does not push updates.
-  Stream<List<Map<String, dynamic>>> watchEvents(String tripId) =>
-      Stream.fromFuture(
-        _client
-            .from(Tables.fleetAuditEvents)
-            .select()
-            .eq('entity_type', 'TRIP')
-            .eq('entity_id', tripId)
-            .order('event_time'),
-      );
+  Future<String> submitClosure({
+    required String companyId,
+    required String tripId,
+    int? closingOdometerKm,
+    double? actualDistanceKm,
+    double bataEarned = 0,
+    double bataAdvance = 0,
+    bool deliveryConfirmed = false,
+    String? podObjectPath,
+    String? closureNotes,
+    String? idempotencyKey,
+  }) => _fleet.submitClosure(
+    companyId: companyId,
+    tripId: tripId,
+    closingOdometerKm: closingOdometerKm,
+    actualDistanceKm: actualDistanceKm,
+    bataEarned: bataEarned,
+    bataAdvance: bataAdvance,
+    deliveryConfirmed: deliveryConfirmed,
+    podObjectPath: podObjectPath,
+    closureNotes: closureNotes,
+    idempotencyKey: idempotencyKey,
+  );
+
+  Future<void> reviewClosure({
+    required String companyId,
+    required String closureId,
+    required bool approve,
+    String? note,
+  }) => _fleet.reviewClosure(
+    companyId: companyId,
+    closureId: closureId,
+    decision: approve ? 'APPROVED' : 'REJECTED',
+    reviewerNote: note,
+  );
+
+  Future<void> cancel({
+    required String companyId,
+    required String tripId,
+    required String reason,
+  }) => _fleet.cancelTrip(companyId: companyId, tripId: tripId, reason: reason);
+
+  Future<List<AuditEvent>> history(String tripId) => _fleet.tripHistory(tripId);
+
+  Stream<List<AuditEvent>> watchHistory(String tripId) =>
+      _fleet.watchTripHistory(tripId);
 }

@@ -1,19 +1,23 @@
+import 'dart:async';
+
 import 'package:easyfleet_core/easyfleet_core.dart';
 import 'package:easyfleet_domain/easyfleet_domain.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
-/// Driver trip map: breadcrumb trail, current vehicle position and ETA panel.
+/// Driver trip map: breadcrumb trail and current position.
+/// Uses OpenStreetMap tiles so no maps API key is required.
 class TripRouteMap extends StatefulWidget {
   const TripRouteMap({
     super.key,
     required this.breadcrumbs,
-    required this.currentPosition,
+    this.currentPosition,
     this.eta,
   });
 
   final Stream<List<LocationBreadcrumb>> breadcrumbs;
-  final Stream<LocationPoint> currentPosition;
+  final Stream<LocationPoint>? currentPosition;
   final Duration? eta;
 
   @override
@@ -21,60 +25,97 @@ class TripRouteMap extends StatefulWidget {
 }
 
 class _TripRouteMapState extends State<TripRouteMap> {
-  GoogleMapController? _controller;
-  Set<Polyline> _polylines = const <Polyline>{};
-  Set<Marker> _markers = const <Marker>{};
+  final MapController _controller = MapController();
+  StreamSubscription<List<LocationBreadcrumb>>? _breadcrumbSub;
+  StreamSubscription<LocationPoint>? _positionSub;
+  List<LatLng> _trail = const [];
+  LatLng? _current;
 
   @override
   void initState() {
     super.initState();
-    widget.breadcrumbs.listen(_onBreadcrumbs);
-    widget.currentPosition.listen(_onCurrentPosition);
+    _breadcrumbSub = widget.breadcrumbs.listen(_onBreadcrumbs);
+    _positionSub = widget.currentPosition?.listen(_onCurrentPosition);
+  }
+
+  @override
+  void didUpdateWidget(TripRouteMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.breadcrumbs != widget.breadcrumbs) {
+      _breadcrumbSub?.cancel();
+      _breadcrumbSub = widget.breadcrumbs.listen(_onBreadcrumbs);
+    }
+    if (oldWidget.currentPosition != widget.currentPosition) {
+      _positionSub?.cancel();
+      _positionSub = widget.currentPosition?.listen(_onCurrentPosition);
+    }
   }
 
   void _onBreadcrumbs(List<LocationBreadcrumb> breadcrumbs) {
     if (!mounted || breadcrumbs.isEmpty) return;
     setState(() {
-      _polylines = {
-        Polyline(
-          polylineId: const PolylineId('trip-trail'),
-          color: Theme.of(context).colorScheme.primary,
-          width: 4,
-          points: breadcrumbs
-              .map((b) => LatLng(b.latitude, b.longitude))
-              .toList(growable: false),
-        ),
-      };
+      _trail = breadcrumbs
+          .map((b) => LatLng(b.latitude, b.longitude))
+          .toList(growable: false);
+      _current = _trail.last;
     });
   }
 
   void _onCurrentPosition(LocationPoint point) {
     if (!mounted) return;
-    setState(() {
-      _markers = {
-        Marker(
-          markerId: const MarkerId('current-position'),
-          position: LatLng(point.latitude, point.longitude),
-          infoWindow: const InfoWindow(title: 'You'),
-        ),
-      };
-    });
+    setState(() => _current = LatLng(point.latitude, point.longitude));
   }
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final et = widget.eta;
     return Stack(
       children: [
-        GoogleMap(
-          initialCameraPosition: const CameraPosition(
-            target: LatLng(20.5937, 78.9629),
-            zoom: 5,
+        FlutterMap(
+          mapController: _controller,
+          options: MapOptions(
+            initialCenter: _current ?? const LatLng(20.5937, 78.9629),
+            initialZoom: _current == null ? 5 : 13,
+            minZoom: 3,
+            maxZoom: 18,
           ),
-          onMapCreated: (controller) => _controller = controller,
-          polylines: _polylines,
-          markers: _markers,
-          myLocationEnabled: true,
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'in.easyfleet.app',
+            ),
+            if (_trail.length >= 2)
+              PolylineLayer(
+                polylines: [
+                  Polyline(
+                    points: _trail,
+                    color: scheme.primary,
+                    strokeWidth: 4,
+                  ),
+                ],
+              ),
+            if (_current != null)
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: _current!,
+                    width: 40,
+                    height: 40,
+                    child: Icon(
+                      Icons.my_location,
+                      color: scheme.secondary,
+                      size: 30,
+                    ),
+                  ),
+                ],
+              ),
+            const RichAttributionWidget(
+              attributions: [
+                TextSourceAttribution('OpenStreetMap contributors'),
+              ],
+            ),
+          ],
         ),
         if (et != null)
           Positioned(
@@ -93,7 +134,9 @@ class _TripRouteMapState extends State<TripRouteMap> {
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _breadcrumbSub?.cancel();
+    _positionSub?.cancel();
+    _controller.dispose();
     super.dispose();
   }
 }

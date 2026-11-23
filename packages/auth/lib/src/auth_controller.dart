@@ -60,27 +60,39 @@ class AuthController extends Notifier<AuthState> {
     );
   }
 
-  /// Creates a driver account with Supabase Auth.
+  /// Creates an account with Supabase Auth.
   ///
   /// Returns `true` when Supabase auto-confirmed the account and returned a
   /// session. Returns `false` when the user must confirm their email first.
-  Future<bool> signUpDriverWithPassword({
+  Future<bool> signUpWithPassword({
     required String displayName,
     required String email,
     required String password,
+    String appRole = 'driver',
   }) async {
     final client = ref.read(supabaseClientProvider);
     final response = await client.auth.signUp(
       email: email,
       password: password,
-      data: {'display_name': displayName.trim(), 'app_role': 'driver'},
+      data: {'display_name': displayName.trim(), 'app_role': appRole},
     );
     final signedInImmediately = response.session != null;
-    if (signedInImmediately) {
+    if (signedInImmediately && appRole == 'driver') {
       await ensureDriverAccount(displayName: displayName);
     }
     return signedInImmediately;
   }
+
+  /// Creates a driver account with Supabase Auth.
+  Future<bool> signUpDriverWithPassword({
+    required String displayName,
+    required String email,
+    required String password,
+  }) => signUpWithPassword(
+    displayName: displayName,
+    email: email,
+    password: password,
+  );
 
   /// Supabase email OTP replaces WonderMove's Ory Kratos login-link flow.
   Future<void> signInWithOtp({required String email}) async {

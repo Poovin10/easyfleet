@@ -11,7 +11,8 @@ import 'supabase_tables.dart';
 /// DL/GST onboarding against the live company-centric Supabase schema.
 ///
 /// Documents are uploaded to the private bucket with paths that match the
-/// Storage RLS policies, and metadata writes go through scoped RPCs.
+/// Storage RLS policies; metadata writes go through scoped RPCs; approval
+/// remains office-controlled.
 final onboardingServiceProvider = Provider<OnboardingService>((ref) {
   final client = ref.watch(supabaseClientProvider);
   final environment = ref.watch(environmentProvider);
@@ -30,11 +31,9 @@ class OnboardingService {
     required Uint8List bytes,
     required String extension,
   }) async {
-    final userId = _currentUserId;
     final cleanExtension = extension.replaceAll('.', '').toLowerCase();
     final filename =
-        '$kind-${DateTime.now().microsecondsSinceEpoch}'
-        '.$cleanExtension';
+        '$kind-${DateTime.now().microsecondsSinceEpoch}.$cleanExtension';
 
     late final String path;
     switch (kind) {
@@ -45,10 +44,17 @@ class OnboardingService {
         final companyId = await _ownedCompanyId();
         path = '$companyId/company_documents/$filename';
       default:
-        path = 'personal/$userId/profile/$filename';
+        final driverAccountId = await _driverAccountId();
+        path = 'personal/$driverAccountId/profile/$filename';
     }
 
-    await _client.storage.from(_bucket).uploadBinary(path, bytes);
+    await _client.storage
+        .from(_bucket)
+        .uploadBinary(
+          path,
+          bytes,
+          fileOptions: const FileOptions(upsert: true),
+        );
     return path;
   }
 
@@ -58,8 +64,8 @@ class OnboardingService {
     required String documentPath,
   }) async {
     final driverAccountId = await _driverAccountId();
-    await _client.rpc<void>(
-      'easyfleet_submit_driver_licence',
+    await _client.rpc<dynamic>(
+      RpcNames.submitDriverLicence,
       params: {
         'p_driver_account_id': driverAccountId,
         'p_licence_class': _licenceClassValue(licenseClass),
@@ -75,8 +81,8 @@ class OnboardingService {
     required String documentPath,
   }) async {
     final companyId = await _ownedCompanyId();
-    await _client.rpc<void>(
-      'easyfleet_submit_company_gst',
+    await _client.rpc<dynamic>(
+      RpcNames.submitCompanyGst,
       params: {
         'p_company_id': companyId,
         'p_gstin': gst.trim().toUpperCase(),
@@ -93,27 +99,71 @@ class OnboardingService {
       final companyId = await _ownedCompanyId();
       final row = await _client
           .from(Tables.companies)
-          .select('gst_certificate_path')
+          .select('gst_verification_status, gst_certificate_path')
           .eq('id', companyId)
           .maybeSingle();
-      final path = row?['gst_certificate_path'] as String?;
-      return (path != null && path.trim().isNotEmpty)
-          ? VerificationStatus.pending
-          : VerificationStatus.notSubmitted;
+      return _mapStatus(
+        row?['gst_verification_status'] as String?,
+        submitted: (row?['gst_certificate_path'] as String? ?? '').isNotEmpty,
+      );
     }
+    final licence = await dlDetails();
+    return _mapStatus(licence?.verificationStatus, submitted: licence != null);
+  }
 
+  /// Full licence record for the signed-in driver (status, rejection reason).
+  Future<DriverLicence?> dlDetails() async {
     final driverAccountId = await _driverAccountId();
     final row = await _client
         .from(Tables.driverLicences)
-        .select('verification_status')
+        .select()
         .eq('driver_account_id', driverAccountId)
         .maybeSingle();
+    return row == null ? null : DriverLicence.fromJson(row);
+  }
 
-    return switch (row?['verification_status'] as String?) {
+  /// GST state for the owned company, including rejection reason.
+  Future<Company?> gstDetails() async {
+    final companyId = await _ownedCompanyId();
+    final row = await _client
+        .from(Tables.companies)
+        .select()
+        .eq('id', companyId)
+        .maybeSingle();
+    return row == null ? null : Company.fromJson(row);
+  }
+
+  /// Office review history for the caller's DL or company GST.
+  Future<List<DocumentReview>> reviewHistory({
+    required bool isTransporter,
+  }) async {
+    if (isTransporter) {
+      final companyId = await _ownedCompanyId();
+      final rows = await _client
+          .from(Tables.documentReviewHistory)
+          .select()
+          .eq('company_id', companyId)
+          .order('acted_at', ascending: false);
+      return rows.map(DocumentReview.fromJson).toList();
+    }
+    final driverAccountId = await _driverAccountId();
+    final rows = await _client
+        .from(Tables.documentReviewHistory)
+        .select()
+        .eq('driver_account_id', driverAccountId)
+        .order('acted_at', ascending: false);
+    return rows.map(DocumentReview.fromJson).toList();
+  }
+
+  VerificationStatus _mapStatus(String? backend, {required bool submitted}) {
+    return switch (backend) {
       'PENDING' => VerificationStatus.pending,
       'VERIFIED' => VerificationStatus.approved,
       'FAILED' || 'EXPIRED' || 'REVIEW_REQUIRED' => VerificationStatus.rejected,
-      _ => VerificationStatus.notSubmitted,
+      _ =>
+        submitted
+            ? VerificationStatus.pending
+            : VerificationStatus.notSubmitted,
     };
   }
 

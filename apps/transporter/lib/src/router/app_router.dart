@@ -1,11 +1,23 @@
 import 'package:easyfleet_auth/easyfleet_auth.dart';
 import 'package:easyfleet_core/easyfleet_core.dart';
+import 'package:easyfleet_sync/easyfleet_sync.dart';
 import 'package:easyfleet_ui/easyfleet_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../features/placeholder_screen.dart';
+import '../features/accounting_screen.dart';
+import '../features/company_gate.dart';
+import '../features/company_profile_screen.dart';
+import '../features/dashboard_screen.dart';
+import '../features/drivers_screen.dart';
+import '../features/fleet_map_screen.dart';
+import '../features/gps_devices_screen.dart';
+import '../features/jobs_manage_screen.dart';
+import '../features/settings_screen.dart';
+import '../features/subscription_screen.dart';
+import '../features/trips_screen.dart';
+import '../features/vehicles_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -33,8 +45,67 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.login,
+        builder: (context, state) => const LoginScreen(
+          appName: 'EasyFleet Transporter',
+          enableSignUp: true,
+          appRole: 'transporter',
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) =>
-            const LoginScreen(appName: 'EasyFleet Transporter'),
+            const CompanyGate(child: TransporterNotificationsScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.companyProfile,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            const CompanyGate(child: CompanyProfileScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.vehicles,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const CompanyGate(child: VehiclesScreen()),
+      ),
+      GoRoute(
+        path: '/jobs-manage',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            const CompanyGate(child: JobsManageScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.trips,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            const CompanyGate(child: TransporterTripsScreen()),
+      ),
+      GoRoute(
+        path: '/trips/:tripId',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => CompanyGate(
+          child: TransporterTripDetailScreen(
+            tripId: state.pathParameters['tripId']!,
+          ),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.gpsDevices,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            const CompanyGate(child: GpsDevicesScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.accounting,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            const CompanyGate(child: AccountingScreen()),
+      ),
+      GoRoute(
+        path: '/subscription',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            const CompanyGate(child: SubscriptionScreen()),
       ),
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
@@ -42,66 +113,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: AppRoutes.home,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'Operations dashboard',
-              icon: Icons.dashboard_outlined,
-            ),
+            builder: (context, state) =>
+                const CompanyGate(child: TransporterDashboardScreen()),
           ),
           GoRoute(
             path: AppRoutes.candidates,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'Find drivers',
-              icon: Icons.person_search_outlined,
-            ),
+            builder: (context, state) =>
+                const CompanyGate(child: FindDriversScreen()),
           ),
           GoRoute(
             path: AppRoutes.assignments,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'Appointments',
-              icon: Icons.handshake_outlined,
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.gpsDevices,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'Truck GPS devices',
-              icon: Icons.sensors_outlined,
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.companyProfile,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'GST profile & verification',
-              icon: Icons.business_outlined,
-            ),
+            builder: (context, state) =>
+                const CompanyGate(child: DriversScreen()),
           ),
           GoRoute(
             path: AppRoutes.fleetMap,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'Live fleet map',
-              icon: Icons.map_outlined,
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.vehicleStatus,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'Vehicle status',
-              icon: Icons.local_shipping_outlined,
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.accounting,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'Accounting & KPIs',
-              icon: Icons.account_balance_wallet_outlined,
-            ),
+            builder: (context, state) =>
+                const CompanyGate(child: FleetMapScreen()),
           ),
           GoRoute(
             path: AppRoutes.settings,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'Settings',
-              icon: Icons.settings_outlined,
-            ),
+            builder: (context, state) =>
+                const CompanyGate(child: TransporterSettingsScreen()),
           ),
         ],
       ),
@@ -109,7 +142,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   );
 });
 
-class TransporterShell extends StatelessWidget {
+class TransporterShell extends ConsumerWidget {
   const TransporterShell({super.key, required this.child});
 
   final Widget child;
@@ -141,7 +174,9 @@ class TransporterShell extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Start the offline sync loop for the signed-in session.
+    ref.watch(syncControllerProvider);
     return Scaffold(
       body: child,
       bottomNavigationBar: NavigationBar(

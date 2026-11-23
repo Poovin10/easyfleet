@@ -9,10 +9,12 @@ class LoginScreen extends ConsumerStatefulWidget {
     super.key,
     required this.appName,
     this.enableSignUp = false,
+    this.appRole = 'driver',
   });
 
   final String appName;
   final bool enableSignUp;
+  final String appRole;
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -61,7 +63,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .signInWithPassword(
             email: _emailController.text.trim(),
             password: _passwordController.text,
-            createDriverAccountIfMissing: widget.enableSignUp,
+            createDriverAccountIfMissing:
+                widget.enableSignUp && widget.appRole == 'driver',
           );
     } catch (error) {
       if (mounted) setState(() => _error = error.toString());
@@ -81,10 +84,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       final signedInImmediately = await ref
           .read(authControllerProvider.notifier)
-          .signUpDriverWithPassword(
+          .signUpWithPassword(
             displayName: _nameController.text.trim(),
             email: _emailController.text.trim(),
             password: _passwordController.text,
+            appRole: widget.appRole,
           );
       if (!mounted) return;
       setState(() {

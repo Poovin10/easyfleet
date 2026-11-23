@@ -1,11 +1,19 @@
 import 'package:easyfleet_auth/easyfleet_auth.dart';
 import 'package:easyfleet_core/easyfleet_core.dart';
+import 'package:easyfleet_sync/easyfleet_sync.dart';
 import 'package:easyfleet_ui/easyfleet_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../features/placeholder_screen.dart';
+import '../features/applications_screen.dart';
+import '../features/dashboard_screen.dart';
+import '../features/driver_profile_screen.dart';
+import '../features/jobs_screen.dart';
+import '../features/live_tracking_screen.dart';
+import '../features/settings_screen.dart';
+import '../features/trips_screen.dart';
+import '../features/wallet_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -36,74 +44,66 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) =>
             const LoginScreen(appName: 'EasyFleet Driver', enableSignUp: true),
       ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.wallet,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const WalletScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.myApplications,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const DriverApplicationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.assignments,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const DriverAssignmentsScreen(),
+      ),
+      GoRoute(
+        path: '/trips/:tripId',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            DriverTripDetailScreen(tripId: state.pathParameters['tripId']!),
+      ),
+      GoRoute(
+        path: '/jobs/:jobId',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) =>
+            DriverJobDetailScreen(jobId: state.pathParameters['jobId']!),
+      ),
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
         builder: (context, state, child) => DriverShell(child: child),
         routes: [
           GoRoute(
             path: AppRoutes.home,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'Driver dashboard',
-              icon: Icons.dashboard_outlined,
-            ),
+            builder: (context, state) => const DriverDashboardScreen(),
           ),
           GoRoute(
             path: AppRoutes.jobs,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'Driver job market',
-              icon: Icons.work_outline,
-            ),
-            routes: [
-              GoRoute(
-                path: ':jobId',
-                builder: (context, state) => PlaceholderScreen(
-                  title: 'Job ${state.pathParameters['jobId']}',
-                  icon: Icons.description_outlined,
-                ),
-              ),
-            ],
-          ),
-          GoRoute(
-            path: AppRoutes.myApplications,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'My applications',
-              icon: Icons.assignment_outlined,
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.assignments,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'My appointment',
-              icon: Icons.handshake_outlined,
-            ),
+            builder: (context, state) => const DriverJobsScreen(),
           ),
           GoRoute(
             path: AppRoutes.driverProfile,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'DL profile & verification',
-              icon: Icons.badge_outlined,
-            ),
+            builder: (context, state) => const DriverProfileScreen(),
           ),
           GoRoute(
             path: AppRoutes.trips,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'Trips & logbook',
-              icon: Icons.route_outlined,
-            ),
+            builder: (context, state) => const DriverTripsScreen(),
           ),
           GoRoute(
             path: AppRoutes.liveTracking,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'Live tracking',
-              icon: Icons.gps_fixed,
-            ),
+            builder: (context, state) => const LiveTrackingScreen(),
           ),
           GoRoute(
             path: AppRoutes.settings,
-            builder: (context, state) => const PlaceholderScreen(
-              title: 'Settings',
-              icon: Icons.settings_outlined,
-            ),
+            builder: (context, state) =>
+                const SettingsScreen(appName: 'EasyFleet Driver'),
           ),
         ],
       ),
@@ -111,7 +111,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   );
 });
 
-class DriverShell extends StatelessWidget {
+class DriverShell extends ConsumerWidget {
   const DriverShell({super.key, required this.child});
 
   final Widget child;
@@ -135,7 +135,9 @@ class DriverShell extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Start the offline sync loop for the signed-in session.
+    ref.watch(syncControllerProvider);
     return Scaffold(
       body: child,
       bottomNavigationBar: NavigationBar(

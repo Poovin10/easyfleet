@@ -25,21 +25,3 @@ abstract final class ApiEndpoints {
   static const driverLedgerEntries = '$rest/driver_ledger_entries';
   static const fleetMaintenanceJobs = '$rest/fleet_maintenance_jobs';
 }
-
-/// RPC names that exist in the live public schema.
-abstract final class RpcNames {
-  static const createDriverAccount = 'easyfleet_create_driver_account';
-  static const submitDriverLicence = 'easyfleet_submit_driver_licence';
-  static const submitCompanyGst = 'easyfleet_submit_company_gst';
-  static const createCompany = 'easyfleet_create_company';
-  static const createVehicle = 'easyfleet_create_vehicle';
-  static const createTrip = 'easyfleet_create_trip';
-  static const startTrip = 'easyfleet_start_trip';
-  static const submitTripClosure = 'easyfleet_submit_trip_closure';
-  static const reviewTripClosure = 'easyfleet_review_trip_closure';
-  static const writeAuditEvent = 'easyfleet_write_audit_event';
-  static const isCompanyMember = 'is_company_member';
-  static const isCompanyManager = 'is_company_manager';
-  static const isCompanyOperator = 'is_company_operator';
-  static const isApprovedCompanyDriver = 'is_approved_company_driver';
-}

@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:easyfleet_domain/easyfleet_domain.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 /// Transporter fleet map. Positions are streamed from Supabase Realtime.
+/// Uses OpenStreetMap tiles so no maps API key is required.
 class LiveFleetMap extends StatefulWidget {
   const LiveFleetMap({
     super.key,
@@ -18,51 +22,76 @@ class LiveFleetMap extends StatefulWidget {
 }
 
 class _LiveFleetMapState extends State<LiveFleetMap> {
-  GoogleMapController? _controller;
-  Set<Marker> _markers = const <Marker>{};
+  final MapController _controller = MapController();
+  StreamSubscription<List<VehiclePosition>>? _subscription;
+  List<VehiclePosition> _positions = const [];
 
   @override
   void initState() {
     super.initState();
-    widget.positions.listen(_onPositions);
+    _subscription = widget.positions.listen(_onPositions);
+  }
+
+  @override
+  void didUpdateWidget(LiveFleetMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.positions != widget.positions) {
+      _subscription?.cancel();
+      _subscription = widget.positions.listen(_onPositions);
+    }
   }
 
   void _onPositions(List<VehiclePosition> positions) {
     if (!mounted) return;
-    setState(() {
-      _markers = positions.map(_markerFor).toSet();
-    });
-  }
-
-  Marker _markerFor(VehiclePosition position) {
-    return Marker(
-      markerId: MarkerId(position.vehicleId),
-      position: LatLng(position.latitude, position.longitude),
-      rotation: position.heading ?? 0,
-      infoWindow: InfoWindow(
-        title: position.vehicleNumber,
-        snippet: position.tripId ?? 'No active trip',
-      ),
-    );
+    setState(() => _positions = positions);
   }
 
   @override
   Widget build(BuildContext context) {
-    return GoogleMap(
-      initialCameraPosition: CameraPosition(
-        target: widget.initialTarget,
-        zoom: 5,
+    final scheme = Theme.of(context).colorScheme;
+    return FlutterMap(
+      mapController: _controller,
+      options: MapOptions(
+        initialCenter: widget.initialTarget,
+        initialZoom: 5,
+        minZoom: 3,
+        maxZoom: 18,
       ),
-      onMapCreated: (controller) => _controller = controller,
-      markers: _markers,
-      myLocationEnabled: true,
-      myLocationButtonEnabled: true,
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          userAgentPackageName: 'in.easyfleet.app',
+        ),
+        MarkerLayer(
+          markers: [
+            for (final position in _positions)
+              Marker(
+                point: LatLng(position.latitude, position.longitude),
+                width: 44,
+                height: 44,
+                child: Tooltip(
+                  message:
+                      '${position.vehicleNumber}${position.tripId == null ? '' : ' • on trip'}',
+                  child: Icon(
+                    Icons.local_shipping,
+                    color: scheme.primary,
+                    size: 32,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const RichAttributionWidget(
+          attributions: [TextSourceAttribution('OpenStreetMap contributors')],
+        ),
+      ],
     );
   }
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _subscription?.cancel();
+    _controller.dispose();
     super.dispose();
   }
 }

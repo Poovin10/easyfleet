@@ -58,6 +58,18 @@ jobs:
         working-directory: apps/transporter
         run: flutter test
 
+      - name: Domain package tests
+        working-directory: packages/domain
+        run: flutter test
+
+      - name: Network package tests
+        working-directory: packages/network
+        run: flutter test
+
+      - name: Sync package tests
+        working-directory: packages/sync
+        run: flutter test
+
   build:
     name: Build ${{ matrix.app }} debug APK
     needs: validate
