@@ -41,6 +41,26 @@
                     android:host="app.easyfleet.in"
                     android:pathPrefix="/trip/"/>
             </intent-filter>
+            <!-- Email confirmation / magic link callback for Supabase Auth (PKCE). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="com.easyfleet.driver"
+                    android:host="auth"
+                    android:path="/callback"/>
+            </intent-filter>
+            <!-- HTTPS fallback if assetlinks.json is published for app.easyfleet.in. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="app.easyfleet.in"
+                    android:path="/auth/callback"/>
+            </intent-filter>
         </activity>
 
         <!-- Flutter background service used for continuous trip GPS capture.

@@ -116,7 +116,7 @@
   "@dontHaveAccount": {
     "description": "dontHaveAccount"
   },
-  "checkYourEmail": "Account created. Check your email to confirm, then sign in.",
+  "checkYourEmail": "Account created. Open the confirmation link in this app to finish signing in.",
   "@checkYourEmail": {
     "description": "checkYourEmail"
   },

@@ -285,7 +285,7 @@ abstract class AppLocalizations {
   /// checkYourEmail
   ///
   /// In en, this message translates to:
-  /// **'Account created. Check your email to confirm, then sign in.'**
+  /// **'Account created. Open the confirmation link in this app to finish signing in.'**
   String get checkYourEmail;
 
   /// signUpSuccess

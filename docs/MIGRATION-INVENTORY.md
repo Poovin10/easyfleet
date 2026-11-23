@@ -5,7 +5,7 @@ All migrations are **additive** and were applied via Supabase CLI with the
 authenticated management token. No existing table was dropped, no row was
 deleted or truncated, and no pre-existing RPC was removed.
 
-On 2026-11-23 the remote migration-history rows for all ten Phase-2 versions
+On 2026-11-23 the remote migration-history rows for all eleven Phase-2 versions
 were missing even though the schema objects were present. `supabase migration
 repair --status applied` was used to record the already-applied versions; no
 migration SQL was replayed against production data. Replacement function
@@ -41,6 +41,7 @@ any new table/column contains data).
 | 8 | `20261123000800_contact_lookup_billing.sql` | Business rule **₹100 per driver contact unlock**: `driver_contact_lookups` (RLS company-scoped, unique idempotency key); `payment_transactions.purpose` extended with `CONTACT_LOOKUP`; `easyfleet_lookup_driver_contact()` — server-authoritative amount, active subscription + office-verified licence required, replay returns the same contact without a second charge, audit event written. |
 | 9 | `20261123000900_subscription_payment_scope_fix.sql` | Replaced `easyfleet_pay_subscription()` so the SUBSCRIPTION→RENEWAL decision only considers subscription payments; contact-lookup charges no longer misclassify the first subscription payment. No tables, columns, data or grants change. |
 | 10 | `20261123001000_vehicle_documents_rpc.sql` | `easyfleet_add_vehicle_document()` registers compliance metadata after a private Storage upload. Company membership, vehicle ownership, document type and the `<company>/vehicles/<vehicle>/<type>/<file>` path are validated server-side; an audit event is written. Needed because the pre-existing `fleet_vehicle_documents` table has SELECT but no INSERT grant. |
+| 11 | `20261123001100_trip_ledger_driver_relationships.sql` | Added direct FKs `fleet_trips.driver_account_id → driver_accounts(id)` and `driver_ledger_entries.driver_account_id → driver_accounts(id)` (plus `notify pgrst, 'reload schema'`). The previous composite FKs to `company_drivers(id, company_id, driver_account_id)` prevented PostgREST from resolving the apps' embedded `driver_accounts(display_name)` selects ("could not find a relationship ... in the schema cache"). No data, columns, grants or functions change. |
 
 ## Final catalog state (verified read-only after migration)
 
@@ -61,10 +62,11 @@ Realtime publication `supabase_realtime` now contains: `companies`,
 ## Verification (2026-11-23)
 
 `supabase db query --remote=... --file supabase/tests/phase2_backend_tests.sql`
-ran inside a rolled-back transaction: **86/86 assertions passed**, including
-contact-lookup billing/idempotency and vehicle-document path validation.
+ran inside a rolled-back transaction: **88/88 assertions passed**, including
+contact-lookup billing/idempotency, vehicle-document path validation and the
+two restored PostgREST relationships.
 Live catalog recheck: 37 tables / 59 functions / 45 policies /
-10 Phase-2 migration-history rows.
+11 Phase-2 migration-history rows.
 
 ## Data preservation statement
 

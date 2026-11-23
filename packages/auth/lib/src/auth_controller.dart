@@ -8,6 +8,15 @@ final authControllerProvider = NotifierProvider<AuthController, AuthState>(
   AuthController.new,
 );
 
+/// Native auth callback URLs allowlisted in Supabase Auth. A confirmation or
+/// magic link opened on the device lands back in the app, where
+/// `supabase_flutter` exchanges the PKCE code for a session automatically.
+const _driverAuthRedirect = 'com.easyfleet.driver://auth/callback';
+const _transporterAuthRedirect = 'com.easyfleet.transporter://auth/callback';
+
+String authRedirectForRole(String appRole) =>
+    appRole == 'driver' ? _driverAuthRedirect : _transporterAuthRedirect;
+
 /// Owns the Supabase session state for both apps.
 class AuthController extends Notifier<AuthState> {
   @override
@@ -74,6 +83,7 @@ class AuthController extends Notifier<AuthState> {
     final response = await client.auth.signUp(
       email: email,
       password: password,
+      emailRedirectTo: authRedirectForRole(appRole),
       data: {'display_name': displayName.trim(), 'app_role': appRole},
     );
     final signedInImmediately = response.session != null;
@@ -95,9 +105,15 @@ class AuthController extends Notifier<AuthState> {
   );
 
   /// Supabase email OTP replaces WonderMove's Ory Kratos login-link flow.
-  Future<void> signInWithOtp({required String email}) async {
+  Future<void> signInWithOtp({
+    required String email,
+    String appRole = 'driver',
+  }) async {
     final client = ref.read(supabaseClientProvider);
-    await client.auth.signInWithOtp(email: email);
+    await client.auth.signInWithOtp(
+      email: email,
+      emailRedirectTo: authRedirectForRole(appRole),
+    );
   }
 
   Future<void> signOut() async {

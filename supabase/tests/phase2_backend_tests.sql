@@ -549,6 +549,21 @@ begin
   end;
 end $$;
 
+-- ---------------------------------------------------------------------------
+-- PostgREST embedded relationships used by the Flutter clients.
+-- ---------------------------------------------------------------------------
+do $$
+begin
+  insert into test_results(name, ok, detail)
+  select 'trips -> driver_accounts relationship',
+         exists(select 1 from pg_constraint where conrelid = 'public.fleet_trips'::regclass and conname = 'fleet_trips_driver_account_fkey'),
+         'embedded driver_accounts(display_name)';
+  insert into test_results(name, ok, detail)
+  select 'ledger -> driver_accounts relationship',
+         exists(select 1 from pg_constraint where conrelid = 'public.driver_ledger_entries'::regclass and conname = 'driver_ledger_entries_driver_account_fkey'),
+         'embedded driver_accounts(display_name)';
+end $$;
+
 select name, ok, detail from test_results order by seq;
 
 rollback;

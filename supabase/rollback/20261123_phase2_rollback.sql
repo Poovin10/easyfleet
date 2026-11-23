@@ -1,5 +1,5 @@
 -- EasyFleet Phase 2 rollback script.
--- Reverses ONLY objects added by migrations 20261123000100..000900.
+-- Reverses ONLY objects added by migrations 20261123000100..001100.
 -- Existing production tables, rows and pre-Phase-2 RPCs are never dropped.
 --
 -- IMPORTANT:
@@ -94,6 +94,12 @@ drop function if exists public.easyfleet_prevent_mutation();
 --    step is optional and intentionally not automated.
 
 -- 5. Remove Phase-2 triggers, view, tables, columns and policies.
+--    Migration 001100 added FKs to pre-existing tables; drop them first.
+alter table public.fleet_trips
+  drop constraint if exists fleet_trips_driver_account_fkey;
+alter table public.driver_ledger_entries
+  drop constraint if exists driver_ledger_entries_driver_account_fkey;
+
 drop trigger if exists companies_seed_trial on public.companies;
 drop trigger if exists document_review_history_immutable on public.document_review_history;
 drop trigger if exists fleet_audit_events_immutable on public.fleet_audit_events;

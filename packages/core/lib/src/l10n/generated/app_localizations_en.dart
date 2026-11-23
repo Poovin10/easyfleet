@@ -98,7 +98,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get checkYourEmail =>
-      'Account created. Check your email to confirm, then sign in.';
+      'Account created. Open the confirmation link in this app to finish signing in.';
 
   @override
   String get signUpSuccess => 'Account created.';
