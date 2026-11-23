@@ -67,6 +67,19 @@ jobs:
           - driver
           - transporter
     steps:
+      - name: Free runner disk space
+        run: |
+          df -h /
+          sudo rm -rf \
+            /usr/share/dotnet \
+            /usr/local/.ghcup \
+            /opt/hostedtoolcache/CodeQL \
+            /usr/local/share/powershell \
+            /usr/share/swift \
+            /usr/local/lib/android/sdk/ndk
+          sudo apt-get clean
+          df -h /
+
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
