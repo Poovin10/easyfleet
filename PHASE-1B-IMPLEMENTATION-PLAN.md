@@ -150,3 +150,11 @@ Completed in the working tree:
 - Transporter app tests: **1 passed**.
 
 No existing table, row, RLS policy, trigger, index, constraint, or RPC was modified. No release APK was built.
+
+Final verification:
+
+- Commit pushed: `e4734dc`
+- Debug CI run: `45137097600`
+- First attempt failed only because Maven Central returned HTTP 429; the failed job was rerun.
+- Rerun conclusion: **success** for validation, driver debug APK, and transporter debug APK.
+- Both debug APK artifacts were uploaded.
