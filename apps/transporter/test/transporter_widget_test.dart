@@ -2,12 +2,14 @@ import 'package:easyfleet_core/easyfleet_core.dart';
 import 'package:easyfleet_domain/easyfleet_domain.dart';
 import 'package:easyfleet_network/easyfleet_network.dart';
 import 'package:easyfleet_transporter/src/features/company_gate.dart';
+import 'package:easyfleet_transporter/src/features/drivers_screen.dart';
 import 'package:easyfleet_transporter/src/features/subscription_screen.dart';
 import 'package:easyfleet_transporter/src/features/vehicles_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 SupabaseClient _dummyClient() => SupabaseClient(
@@ -104,6 +106,42 @@ class FakeSubscriptionService extends SubscriptionService {
   }
 }
 
+class FakeMarketplaceService extends MarketplaceService {
+  FakeMarketplaceService() : super(_dummyClient());
+
+  bool lookupCalled = false;
+
+  @override
+  Future<List<DriverSearchResult>> searchDrivers({
+    String? licenceClass,
+    String? state,
+    int limit = 50,
+  }) async => [
+    const DriverSearchResult(
+      driverAccountId: 'd1',
+      displayName: 'Verified Driver',
+      licenceClass: 'HMV',
+      issuingState: 'Kerala',
+      verificationStatus: 'VERIFIED',
+    ),
+  ];
+
+  @override
+  Future<DriverContact> lookupDriverContact(
+    String driverAccountId, {
+    String? idempotencyKey,
+  }) async {
+    lookupCalled = true;
+    return DriverContact(
+      driverAccountId: driverAccountId,
+      displayName: 'Verified Driver',
+      phoneE164: '+919876543210',
+      amountInr: 100,
+      lookupId: 'lookup-1',
+    );
+  }
+}
+
 Widget _wrap(Widget child, List<Override> overrides) {
   return ProviderScope(
     overrides: overrides,
@@ -166,6 +204,30 @@ void main() {
     expect(find.text('KL01AB1234'), findsOneWidget);
     expect(find.text('TRUCK • 12000 km'), findsOneWidget);
     expect(find.text('Available'), findsOneWidget);
+  });
+
+  testWidgets('contact lookup charges ₹100 and reveals a verified phone', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final fake = FakeMarketplaceService();
+    await tester.pumpWidget(
+      _wrap(const FindDriversScreen(), [
+        companyContextProvider.overrideWith((ref) async => _membership),
+        marketplaceServiceProvider.overrideWithValue(fake),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Verified Driver'), findsOneWidget);
+    await tester.tap(find.text('Contact ₹100'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Unlock'));
+    await tester.pumpAndSettle();
+
+    expect(fake.lookupCalled, isTrue);
+    expect(find.text('+919876543210'), findsOneWidget);
+    expect(find.textContaining('₹100 charged'), findsOneWidget);
   });
 
   testWidgets('subscription screen shows ₹1500 plan and records payment', (

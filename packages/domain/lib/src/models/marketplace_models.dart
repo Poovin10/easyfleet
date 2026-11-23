@@ -186,3 +186,31 @@ class DriverSearchResult {
   final String verificationStatus;
   final DateTime? validUntil;
 }
+
+/// Result of a billed driver contact unlock (Rs 100 per lookup).
+class DriverContact {
+  const DriverContact({
+    required this.driverAccountId,
+    required this.displayName,
+    this.phoneE164,
+    required this.amountInr,
+    required this.lookupId,
+    this.alreadyUnlocked = false,
+  });
+
+  factory DriverContact.fromJson(Map<String, dynamic> j) => DriverContact(
+    driverAccountId: strReq(j['driver_account_id']),
+    displayName: strReq(j['display_name']),
+    phoneE164: str(j['phone_e164']),
+    amountInr: dbl(j['amount_inr']) ?? 100,
+    lookupId: strReq(j['lookup_id']),
+    alreadyUnlocked: boolean(j['already_unlocked']),
+  );
+
+  final String driverAccountId;
+  final String displayName;
+  final String? phoneE164;
+  final double amountInr;
+  final String lookupId;
+  final bool alreadyUnlocked;
+}

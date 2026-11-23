@@ -67,3 +67,17 @@ extension AppFlavorX on AppFlavor {
 final environmentProvider = Provider<EnvironmentConfig>(
   (ref) => EnvironmentConfig.instance,
 );
+
+/// Version gates are build-time constants so no network call is needed before
+/// the first render. CI can raise the floor with
+/// `--dart-define=MINIMUM_APP_VERSION=x.y.z` without touching source.
+final currentAppVersionProvider = Provider<String>(
+  (ref) => const String.fromEnvironment('APP_VERSION', defaultValue: '1.0.0'),
+);
+
+final minimumSupportedVersionProvider = Provider<String>(
+  (ref) => const String.fromEnvironment(
+    'MINIMUM_APP_VERSION',
+    defaultValue: '1.0.0',
+  ),
+);

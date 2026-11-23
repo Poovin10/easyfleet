@@ -129,6 +129,17 @@ class OutboxRepository {
     );
   }
 
+  /// Returns a claimed row to the queue without consuming a retry attempt.
+  /// Used when the failure is an expired session rather than a bad request.
+  Future<void> release(int id, String error) {
+    return _database.update(
+      table,
+      {'status': OutboxStatus.pending.name, 'last_error': error},
+      where: 'id = ? AND status = ?',
+      whereArgs: [id, OutboxStatus.uploading.name],
+    );
+  }
+
   Future<void> markFailed(int id, String error) async {
     final rows = await _database.query(
       table,
@@ -241,6 +252,16 @@ class OutboxRepository {
       breadcrumbTable,
       {'sync_state': 'SYNCED', 'last_error': null},
       where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Returns a claimed breadcrumb to the queue without consuming an attempt.
+  Future<void> releaseBreadcrumb(int id, String error) {
+    return _database.update(
+      breadcrumbTable,
+      {'sync_state': 'PENDING', 'last_error': error},
+      where: "id = ? AND sync_state = 'UPLOADING'",
       whereArgs: [id],
     );
   }

@@ -132,6 +132,40 @@ end $$;
 
 reset role;
 
+-- ---------------------------------------------------------------------------
+-- Transporter: Rs 100 driver contact lookup billing
+-- ---------------------------------------------------------------------------
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}';
+
+do $$
+declare
+  v_da uuid;
+  v_key uuid := 'dddddddd-0000-4000-8000-000000000009';
+  v_contact jsonb;
+begin
+  select v into v_da from fx where k = 'driver_account_id';
+  v_contact := public.easyfleet_lookup_driver_contact(v_da, v_key);
+  insert into test_results(name, ok, detail)
+  select 'contact lookup returns verified driver',
+         v_contact->>'driver_account_id' = v_da::text
+         and v_contact ? 'phone_e164', '';
+  insert into test_results(name, ok, detail)
+  select 'contact lookup billed 100 INR',
+         (select amount_inr = 100 and purpose = 'CONTACT_LOOKUP'
+          from public.payment_transactions where idempotency_key = v_key), '';
+
+  -- Replay is idempotent: same contact, no second charge.
+  v_contact := public.easyfleet_lookup_driver_contact(v_da, v_key);
+  insert into test_results(name, ok, detail)
+  select 'contact lookup replay is idempotent',
+         (v_contact->>'already_unlocked')::boolean
+         and (select count(*) = 1 from public.payment_transactions
+              where idempotency_key = v_key), '';
+end $$;
+
+reset role;
+
 -- Outsider cannot verify
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated"}';
@@ -174,6 +208,7 @@ declare
   v_cd uuid;
   v_trip uuid := 'cccccccc-0000-4000-8000-000000000001';
   v_key uuid := 'dddddddd-0000-4000-8000-000000000001';
+  v_doc uuid;
 begin
   select v into v_da from fx where k = 'driver_account_id';
   perform public.easyfleet_create_vehicle(v_company, v_vehicle, 'KL01AB1234', 'TRUCK', 'Tata', 'LPT', 2022, 16, 1000, null);
@@ -182,6 +217,25 @@ begin
   -- replay same vehicle id + same payload returns id
   insert into test_results(name, ok, detail)
   select 'vehicle replay idempotent', public.easyfleet_create_vehicle(v_company, v_vehicle, 'KL01AB1234', 'TRUCK', 'Tata', 'LPT', 2022, 16, 1000, null) = v_vehicle, '';
+
+  v_doc := public.easyfleet_add_vehicle_document(
+    v_company, v_vehicle, 'rc',
+    v_company::text || '/vehicles/' || v_vehicle::text || '/rc/rc.jpg',
+    'KL01AB1234'
+  );
+  insert into test_results(name, ok, detail)
+  select 'vehicle compliance document registered',
+         exists(select 1 from public.fleet_vehicle_documents where id = v_doc), '';
+  begin
+    perform public.easyfleet_add_vehicle_document(
+      v_company, v_vehicle, 'rc', 'wrong/path/rc.jpg', 'KL01AB1234'
+    );
+    insert into test_results(name, ok, detail)
+    values ('vehicle document path validated', false, 'no exception');
+  exception when others then
+    insert into test_results(name, ok, detail)
+    values ('vehicle document path validated', sqlerrm like 'INVALID_STORAGE_PATH%', sqlerrm);
+  end;
 
   v_cd := public.easyfleet_add_company_driver(v_company, v_da, null);
   insert into test_results(name, ok, detail)

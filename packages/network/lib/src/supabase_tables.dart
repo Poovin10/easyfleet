@@ -8,6 +8,7 @@ abstract final class Tables {
   static const driverMemberships = 'driver_memberships';
   static const fleetTrips = 'fleet_trips';
   static const fleetVehicles = 'fleet_vehicles';
+  static const vehicleDocuments = 'fleet_vehicle_documents';
   static const fleetAuditEvents = 'fleet_audit_events';
   static const tripLocationBreadcrumbs = 'trip_location_breadcrumbs';
   static const tripUnifiedLocations = 'trip_unified_locations';
@@ -27,6 +28,7 @@ abstract final class Tables {
   static const jobPostings = 'job_postings';
   static const jobApplications = 'job_applications';
   static const jobAssignments = 'job_assignments';
+  static const driverContactLookups = 'driver_contact_lookups';
 }
 
 /// RPC names that exist in the live public schema.
@@ -34,6 +36,7 @@ abstract final class RpcNames {
   static const createDriverAccount = 'easyfleet_create_driver_account';
   static const createCompany = 'easyfleet_create_company';
   static const createVehicle = 'easyfleet_create_vehicle';
+  static const addVehicleDocument = 'easyfleet_add_vehicle_document';
   static const createTrip = 'easyfleet_create_trip';
   static const startTrip = 'easyfleet_start_trip';
   static const cancelTrip = 'easyfleet_cancel_trip';
@@ -70,4 +73,5 @@ abstract final class RpcNames {
   static const assignGpsDevice = 'easyfleet_assign_gps_device';
   static const setGpsDeviceStatus = 'easyfleet_set_gps_device_status';
   static const ingestDevicePositions = 'easyfleet_ingest_device_positions';
+  static const lookupDriverContact = 'easyfleet_lookup_driver_contact';
 }

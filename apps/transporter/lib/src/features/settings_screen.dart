@@ -84,6 +84,7 @@ class _TransporterSettingsScreenState
   bool _changingPassword = false;
 
   Future<void> _changePassword() async {
+    final existing = TextEditingController();
     final next = TextEditingController();
     final confirm = TextEditingController();
     final confirmed = await showDialog<bool>(
@@ -93,6 +94,12 @@ class _TransporterSettingsScreenState
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            TextField(
+              controller: existing,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Current password'),
+            ),
+            const SizedBox(height: 8),
             TextField(
               controller: next,
               obscureText: true,
@@ -121,25 +128,35 @@ class _TransporterSettingsScreenState
       ),
     );
     if (confirmed != true) {
+      existing.dispose();
       next.dispose();
       confirm.dispose();
       return;
     }
-    if (next.text.length < 6 || next.text != confirm.text) {
+    if (existing.text.isEmpty ||
+        next.text.length < 6 ||
+        next.text != confirm.text) {
+      existing.dispose();
       next.dispose();
       confirm.dispose();
       if (mounted) {
-        showErrorSnack(context, 'Passwords must match and be 6+ characters');
+        showErrorSnack(
+          context,
+          'Enter your current password; new passwords must match and be 6+ characters',
+        );
       }
       return;
     }
     setState(() => _changingPassword = true);
     try {
-      await ref.read(authControllerProvider.notifier).changePassword(next.text);
+      await ref
+          .read(authControllerProvider.notifier)
+          .changePassword(next.text, currentPassword: existing.text);
       if (mounted) showSuccessSnack(context, 'Password updated');
     } catch (error) {
       if (mounted) showErrorSnack(context, error);
     } finally {
+      existing.dispose();
       next.dispose();
       confirm.dispose();
       if (mounted) setState(() => _changingPassword = false);

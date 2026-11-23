@@ -171,7 +171,7 @@ class _DriverTripDetailScreenState
       ),
     );
     controller.dispose();
-    if (odometer == null && !mounted) return;
+    if (odometer == null || !mounted) return;
     await _run(
       () => ref
           .read(fleetServiceProvider)

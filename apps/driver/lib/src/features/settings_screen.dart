@@ -20,6 +20,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _changingPassword = false;
 
   Future<void> _changePassword() async {
+    final existing = TextEditingController();
     final current = TextEditingController();
     final next = TextEditingController();
     final confirmed = await showDialog<bool>(
@@ -29,6 +30,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            TextField(
+              controller: existing,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Current password'),
+            ),
+            const SizedBox(height: 8),
             TextField(
               controller: next,
               obscureText: true,
@@ -57,25 +64,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
     );
     if (confirmed != true) {
+      existing.dispose();
       current.dispose();
       next.dispose();
       return;
     }
-    if (next.text.length < 6 || next.text != current.text) {
+    if (existing.text.isEmpty ||
+        next.text.length < 6 ||
+        next.text != current.text) {
+      existing.dispose();
       current.dispose();
       next.dispose();
       if (mounted) {
-        showErrorSnack(context, 'Passwords must match and be 6+ characters');
+        showErrorSnack(
+          context,
+          'Enter your current password; new passwords must match and be 6+ characters',
+        );
       }
       return;
     }
     setState(() => _changingPassword = true);
     try {
-      await ref.read(authControllerProvider.notifier).changePassword(next.text);
+      await ref
+          .read(authControllerProvider.notifier)
+          .changePassword(next.text, currentPassword: existing.text);
       if (mounted) showSuccessSnack(context, 'Password updated');
     } catch (error) {
       if (mounted) showErrorSnack(context, error);
     } finally {
+      existing.dispose();
       current.dispose();
       next.dispose();
       if (mounted) setState(() => _changingPassword = false);

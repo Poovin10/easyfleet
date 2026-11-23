@@ -58,6 +58,45 @@ class FleetService {
     return vehicleId;
   }
 
+  Future<List<Map<String, dynamic>>> vehicleDocuments(
+    String companyId,
+    String vehicleId,
+  ) async {
+    final rows = await _client
+        .from(Tables.vehicleDocuments)
+        .select()
+        .eq('company_id', companyId)
+        .eq('vehicle_id', vehicleId)
+        .order('created_at', ascending: false);
+    return rows.map(Map<String, dynamic>.from).toList();
+  }
+
+  /// Registers a compliance document after its bytes have been uploaded to
+  /// the private bucket. The backend validates the company/vehicle/path shape.
+  Future<String> addVehicleDocument({
+    required String companyId,
+    required String vehicleId,
+    required String documentType,
+    required String storageObjectPath,
+    String? documentNumber,
+    DateTime? issueDate,
+    DateTime? expiryDate,
+  }) async {
+    final documentId = await _client.rpc<String>(
+      RpcNames.addVehicleDocument,
+      params: {
+        'p_company_id': companyId,
+        'p_vehicle_id': vehicleId,
+        'p_document_type': documentType,
+        'p_storage_object_path': storageObjectPath,
+        'p_document_number': documentNumber,
+        'p_issue_date': issueDate?.toIso8601String().split('T').first,
+        'p_expiry_date': expiryDate?.toIso8601String().split('T').first,
+      },
+    );
+    return documentId;
+  }
+
   // -- Company drivers --------------------------------------------------------
 
   Future<List<CompanyDriver>> companyDrivers(String companyId) async {

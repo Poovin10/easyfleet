@@ -4,8 +4,19 @@ import 'package:easyfleet_network/easyfleet_network.dart';
 import 'package:easyfleet_ui/easyfleet_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'company_gate.dart';
+
+final vehicleDocumentsProvider =
+    FutureProvider.family<
+      List<Map<String, dynamic>>,
+      ({String companyId, String vehicleId})
+    >((ref, args) async {
+      return ref
+          .watch(fleetServiceProvider)
+          .vehicleDocuments(args.companyId, args.vehicleId);
+    });
 
 final vehiclesProvider = FutureProvider<List<FleetVehicle>>((ref) async {
   final membership = ref.watch(companyContextProvider).value;
@@ -47,11 +58,38 @@ class VehiclesScreen extends ConsumerWidget {
                     if (vehicle.odometerKm != null) '${vehicle.odometerKm} km',
                   ].join(' • '),
                 ),
-                trailing: StatusChip(status: vehicle.status, dense: true),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      tooltip: 'Compliance documents',
+                      icon: const Icon(Icons.description_outlined),
+                      onPressed: () => _showDocuments(context, ref, vehicle),
+                    ),
+                    StatusChip(status: vehicle.status, dense: true),
+                  ],
+                ),
               );
             },
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _showDocuments(
+    BuildContext context,
+    WidgetRef ref,
+    FleetVehicle vehicle,
+  ) async {
+    final membership = ref.read(companyContextProvider).value;
+    if (membership == null) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => _VehicleDocumentsSheet(
+        companyId: membership.companyId,
+        vehicle: vehicle,
       ),
     );
   }
@@ -245,6 +283,143 @@ class _AddVehicleSheetState extends ConsumerState<_AddVehicleSheet> {
               const SizedBox(height: AppSpacing.sm),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+const _documentTypes = [
+  'rc',
+  'insurance',
+  'fitness',
+  'permit',
+  'puc',
+  'tax',
+  'other',
+];
+
+/// Compliance documents for one vehicle: private Storage upload followed by
+/// a metadata registration through the server-validated RPC.
+class _VehicleDocumentsSheet extends ConsumerStatefulWidget {
+  const _VehicleDocumentsSheet({
+    required this.companyId,
+    required this.vehicle,
+  });
+
+  final String companyId;
+  final FleetVehicle vehicle;
+
+  @override
+  ConsumerState<_VehicleDocumentsSheet> createState() =>
+      _VehicleDocumentsSheetState();
+}
+
+class _VehicleDocumentsSheetState
+    extends ConsumerState<_VehicleDocumentsSheet> {
+  String _type = 'rc';
+  bool _uploading = false;
+
+  Future<void> _upload() async {
+    final file = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 2000,
+      imageQuality: 85,
+    );
+    if (file == null || !mounted) return;
+    final args = (companyId: widget.companyId, vehicleId: widget.vehicle.id);
+    setState(() => _uploading = true);
+    try {
+      final documents = ref.read(documentServiceProvider);
+      final path = documents.vehicleDocumentPath(
+        companyId: widget.companyId,
+        vehicleId: widget.vehicle.id,
+        kind: _type,
+        filename: '${_type}_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      );
+      await documents.upload(path: path, bytes: await file.readAsBytes());
+      await ref
+          .read(fleetServiceProvider)
+          .addVehicleDocument(
+            companyId: widget.companyId,
+            vehicleId: widget.vehicle.id,
+            documentType: _type,
+            storageObjectPath: path,
+            documentNumber: widget.vehicle.registrationNumber,
+          );
+      ref.invalidate(vehicleDocumentsProvider(args));
+      if (mounted) showSuccessSnack(context, 'Vehicle document uploaded');
+    } catch (error) {
+      if (mounted) showErrorSnack(context, error);
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final args = (companyId: widget.companyId, vehicleId: widget.vehicle.id);
+    final documents = ref.watch(vehicleDocumentsProvider(args));
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.7,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Documents · ${widget.vehicle.registrationNumber}',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            DropdownButtonFormField<String>(
+              initialValue: _type,
+              decoration: const InputDecoration(labelText: 'Document type'),
+              items: _documentTypes
+                  .map(
+                    (type) => DropdownMenuItem(
+                      value: type,
+                      child: Text(type.toUpperCase()),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) => setState(() => _type = value ?? 'rc'),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            FilledButton.icon(
+              onPressed: _uploading ? null : _upload,
+              icon: const Icon(Icons.upload_file),
+              label: Text(
+                _uploading ? 'Uploading…' : 'Upload ${_type.toUpperCase()}',
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Expanded(
+              child: AsyncView(
+                value: documents,
+                onRetry: () => ref.invalidate(vehicleDocumentsProvider(args)),
+                isEmpty: (list) => list.isEmpty,
+                emptyMessage: 'No compliance documents uploaded yet.',
+                builder: (list) => ListView.builder(
+                  itemCount: list.length,
+                  itemBuilder: (context, index) {
+                    final document = list[index];
+                    final expiry = document['expiry_date']?.toString();
+                    return ListTile(
+                      leading: const Icon(Icons.description_outlined),
+                      title: Text(document['document_type']?.toString() ?? ''),
+                      subtitle: Text(
+                        [
+                          document['document_number']?.toString() ?? '',
+                          if (expiry != null) 'Expires $expiry',
+                        ].where((s) => s.isNotEmpty).join(' • '),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

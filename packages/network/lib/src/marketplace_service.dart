@@ -249,4 +249,33 @@ class MarketplaceService {
         )
         .toList();
   }
+
+  /// Unlocks a verified driver's phone number. The backend charges the agreed
+  /// Rs 100 per lookup and enforces idempotency by key.
+  Future<DriverContact> lookupDriverContact(
+    String driverAccountId, {
+    String? idempotencyKey,
+  }) async {
+    final result = await _client.rpc<Map<String, dynamic>>(
+      RpcNames.lookupDriverContact,
+      params: {
+        'p_driver_account_id': driverAccountId,
+        'p_idempotency_key': idempotencyKey ?? newId(),
+      },
+    );
+    return DriverContact.fromJson(result);
+  }
+
+  Future<List<Map<String, dynamic>>> contactLookupHistory(
+    String companyId,
+  ) async {
+    final rows = await _client
+        .from(Tables.driverContactLookups)
+        .select(
+          '*, driver_accounts(display_name), payment_transactions(amount_inr, created_at)',
+        )
+        .eq('company_id', companyId)
+        .order('created_at', ascending: false);
+    return rows.map(Map<String, dynamic>.from).toList();
+  }
 }

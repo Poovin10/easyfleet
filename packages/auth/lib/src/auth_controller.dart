@@ -106,8 +106,15 @@ class AuthController extends Notifier<AuthState> {
     state = AuthState.unauthenticated;
   }
 
-  Future<void> changePassword(String newPassword) async {
+  /// Supabase verifies `current_password` server-side before rotating the
+  /// session; never allow a password change from an unattended device.
+  Future<void> changePassword(
+    String newPassword, {
+    required String currentPassword,
+  }) async {
     final client = ref.read(supabaseClientProvider);
-    await client.auth.updateUser(UserAttributes(password: newPassword));
+    await client.auth.updateUser(
+      UserAttributes(password: newPassword, currentPassword: currentPassword),
+    );
   }
 }

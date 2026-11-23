@@ -65,9 +65,9 @@ class SyncService {
           await _repository.markSynced(entry.id!);
           synced++;
         } else if (_isAuthError(error)) {
-          // Session expired: leave queued; the next flush after re-auth
-          // will retry without burning an attempt.
-          await _repository.markFailed(entry.id!, 'auth: $error');
+          // Session expired: release the claim without burning an attempt.
+          // The next flush after re-auth retries this row immediately.
+          await _repository.release(entry.id!, 'auth: $error');
         } else {
           debugPrint('Sync failed for ${entry.idempotencyKey}: $error');
           await _repository.markFailed(entry.id!, error.toString());
@@ -123,6 +123,8 @@ class SyncService {
         if (_isDuplicate(error)) {
           await _repository.markBreadcrumbSynced(id);
           synced++;
+        } else if (_isAuthError(error)) {
+          await _repository.releaseBreadcrumb(id, 'auth: $error');
         } else {
           await _repository.markBreadcrumbFailed(id, error.toString());
         }

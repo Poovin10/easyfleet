@@ -7,6 +7,8 @@ import 'package:easyfleet_ui/easyfleet_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../background/tracking_background.dart';
+
 final _trackableTripsProvider = FutureProvider<List<FleetTrip>>((ref) async {
   ref.watch(driverAccountProvider);
   final trips = await ref.watch(fleetServiceProvider).myDriverTrips();
@@ -111,6 +113,7 @@ class _LiveTrackingScreenState extends ConsumerState<LiveTrackingScreen> {
                                 if (service == null) return;
                                 if (isTracking) {
                                   await service.stop();
+                                  await TripTrackingBackground.stop();
                                   setState(() {});
                                   return;
                                 }
@@ -129,6 +132,7 @@ class _LiveTrackingScreenState extends ConsumerState<LiveTrackingScreen> {
                                 setState(() => _starting = true);
                                 try {
                                   await service.start(tripId);
+                                  await TripTrackingBackground.start(tripId);
                                   setState(() => _selectedTripId = tripId);
                                   if (context.mounted) {
                                     showSuccessSnack(
@@ -159,8 +163,10 @@ class _LiveTrackingScreenState extends ConsumerState<LiveTrackingScreen> {
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   isTracking
-                      ? 'Capturing GPS. ${syncState.pending} point(s) queued for sync.'
-                      : 'Tracking is off. Positions are captured about every 15 s / 10 m while active.',
+                      ? 'Capturing GPS in the foreground service. '
+                            '${syncState.pending} point(s) queued for sync.'
+                      : 'Tracking is off. The foreground service captures a '
+                            'fix every 15 s while the app is in the background.',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],

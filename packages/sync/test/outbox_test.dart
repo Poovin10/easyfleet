@@ -113,6 +113,21 @@ void main() {
       expect(await repository.pending(), isEmpty);
     });
 
+    test(
+      'auth failure releases the claim without burning an attempt',
+      () async {
+        await repository.enqueue(entry('expired'));
+        final id = (await repository.pending()).first.id!;
+        await repository.claim(id);
+        await repository.release(id, 'auth: JWT expired');
+        final rows = await db.query('outbox', where: 'id = ?', whereArgs: [id]);
+        expect(rows.first['status'], 'pending');
+        expect(rows.first['attempts'], 0);
+        expect(rows.first['last_error'], contains('auth'));
+        expect((await repository.pending()).single.id, id);
+      },
+    );
+
     test('five failures move the row to dead letter', () async {
       await repository.enqueue(entry('doomed'));
       final id = (await repository.pending()).first.id!;
@@ -158,5 +173,30 @@ void main() {
       await repository.deleteSyncedBreadcrumbs();
       expect(await repository.pendingBreadcrumbCount(), 0);
     });
+
+    test(
+      'breadcrumb auth failure is requeued without consuming attempts',
+      () async {
+        await repository.enqueueBreadcrumb(
+          breadcrumbId: 'b-auth',
+          tripId: 't1',
+          latitude: 9.9,
+          longitude: 76.2,
+          recordedAt: DateTime.utc(2026, 11, 23),
+          idempotencyKey: 'bk-auth',
+        );
+        final id = (await repository.pendingBreadcrumbs()).first['id'] as int;
+        await repository.claimBreadcrumb(id);
+        await repository.releaseBreadcrumb(id, 'auth: 401');
+        final rows = await db.query(
+          'location_breadcrumbs',
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+        expect(rows.first['sync_state'], 'PENDING');
+        expect(rows.first['attempts'], 0);
+        expect((await repository.pendingBreadcrumbs()).single['id'], id);
+      },
+    );
   });
 }

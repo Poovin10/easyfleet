@@ -4,6 +4,7 @@ import 'package:easyfleet_network/easyfleet_network.dart';
 import 'package:easyfleet_ui/easyfleet_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'company_gate.dart';
 
@@ -240,9 +241,18 @@ class _FindDriversScreenState extends ConsumerState<FindDriversScreen> {
                         if (driver.issuingState != null) driver.issuingState!,
                       ].join(' • '),
                     ),
-                    trailing: FilledButton.tonal(
-                      onPressed: () => _hire(driver),
-                      child: const Text('Hire'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextButton(
+                          onPressed: () => _unlockContact(driver),
+                          child: const Text('Contact ₹100'),
+                        ),
+                        FilledButton.tonal(
+                          onPressed: () => _hire(driver),
+                          child: const Text('Hire'),
+                        ),
+                      ],
                     ),
                   );
                 },
@@ -252,6 +262,63 @@ class _FindDriversScreenState extends ConsumerState<FindDriversScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _unlockContact(DriverSearchResult driver) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'contact_lookup:${driver.driverAccountId}';
+    final idempotencyKey = prefs.getString(key) ?? newId();
+    if (!mounted) return;
+    final confirmed = await confirmDialog(
+      context,
+      title: 'Unlock contact?',
+      message:
+          'A ₹100 lookup charge is recorded to your company. Re-opening this '
+          'contact is free because the same request key is reused.',
+      confirmLabel: 'Unlock',
+    );
+    if (!confirmed || !mounted) return;
+    try {
+      final contact = await ref
+          .read(marketplaceServiceProvider)
+          .lookupDriverContact(
+            driver.driverAccountId,
+            idempotencyKey: idempotencyKey,
+          );
+      await prefs.setString(key, idempotencyKey);
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(contact.displayName),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SelectableText(
+                contact.phoneE164 ?? 'No phone number on file',
+                style: Theme.of(dialogContext).textTheme.titleLarge,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                contact.alreadyUnlocked
+                    ? 'Previously unlocked • no new charge'
+                    : '₹${contact.amountInr.toStringAsFixed(0)} charged to this company',
+                style: Theme.of(dialogContext).textTheme.bodySmall,
+              ),
+            ],
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Done'),
+            ),
+          ],
+        ),
+      );
+    } catch (error) {
+      if (mounted) showErrorSnack(context, error);
+    }
   }
 
   Future<void> _hire(DriverSearchResult driver) async {
