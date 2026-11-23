@@ -13,6 +13,8 @@ concurrency:
 
 env:
   FLUTTER_VERSION: "3.50.1"
+  SUPABASE_URL: "https://iktekjnisqmbjtoictnc.supabase.co"
+  SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
 
 jobs:
   validate:
@@ -112,7 +114,14 @@ jobs:
 
       - name: Build debug APK
         working-directory: apps/${{ matrix.app }}
-        run: flutter build apk --debug
+        run: |
+          if [ -z "$SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "::error::Set the SUPABASE_PUBLISHABLE_KEY repository variable before building."
+            exit 1
+          fi
+          flutter build apk --debug \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_PUBLISHABLE_KEY"
 
       - name: Upload debug APK
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
