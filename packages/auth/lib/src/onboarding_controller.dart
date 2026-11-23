@@ -56,12 +56,9 @@ class OnboardingController extends Notifier<OnboardingState> {
     final status = await ref
         .read(onboardingServiceProvider)
         .verificationStatus(
-          userId: userId,
           isTransporter: state.role == OnboardingRole.transporter,
         );
-    state = state.copyWith(
-      verification: VerificationStatus.values.byName(status),
-    );
+    state = state.copyWith(verification: status);
   }
 
   Future<void> submitDriverDl({
@@ -70,19 +67,16 @@ class OnboardingController extends Notifier<OnboardingState> {
     required Uint8List documentBytes,
   }) async {
     await _submit(OnboardingRole.driver, () async {
-      final userId = ref.read(authControllerProvider).userId!;
       final service = ref.read(onboardingServiceProvider);
-      final url = await service.uploadDocument(
-        userId: userId,
+      final path = await service.uploadDocument(
         kind: 'dl',
         bytes: documentBytes,
         extension: 'jpg',
       );
       await service.submitDriverDl(
-        userId: userId,
         dlNumber: dlNumber,
         licenseClass: licenseClass,
-        documentUrl: url,
+        documentPath: path,
       );
     });
   }
@@ -93,19 +87,16 @@ class OnboardingController extends Notifier<OnboardingState> {
     required Uint8List documentBytes,
   }) async {
     await _submit(OnboardingRole.transporter, () async {
-      final userId = ref.read(authControllerProvider).userId!;
       final service = ref.read(onboardingServiceProvider);
-      final url = await service.uploadDocument(
-        userId: userId,
+      final path = await service.uploadDocument(
         kind: 'gst',
         bytes: documentBytes,
         extension: 'jpg',
       );
       await service.submitCompanyGst(
-        userId: userId,
         gst: gst,
         legalName: legalName,
-        documentUrl: url,
+        documentPath: path,
       );
     });
   }

@@ -9,7 +9,11 @@ final tripLifecycleServiceProvider = Provider<TripLifecycleService>((ref) {
   return TripLifecycleService(ref.watch(supabaseClientProvider));
 });
 
-/// Immutable trip-stage log; both apps read the same stream.
+/// Trip history reader aligned to the live schema.
+///
+/// The backend owns lifecycle transitions through SECURITY DEFINER RPCs and
+/// stores history in `fleet_audit_events`. There are no `trips` or
+/// `trip_events` tables. See `MISSING-BACKEND-CAPABILITIES.md` (M-07/M-08).
 class TripLifecycleService {
   TripLifecycleService(this._client);
 
@@ -28,7 +32,8 @@ class TripLifecycleService {
     return allowedTransitions[current]?.contains(next) ?? false;
   }
 
-  Future<void> advance({
+  /// Lifecycle writes must use the backend RPCs, not direct table updates.
+  Never advance({
     required String tripId,
     required TripStage from,
     required TripStage to,
@@ -36,33 +41,23 @@ class TripLifecycleService {
     String? note,
     double? latitude,
     double? longitude,
-  }) async {
-    if (!canAdvance(from, to)) {
-      throw StateError('Invalid trip transition: ${from.name} -> ${to.name}');
-    }
+  }) => throw UnsupportedError(
+    'Direct trip-stage writes are not available. Use '
+    'easyfleet_start_trip, easyfleet_submit_trip_closure, or '
+    'easyfleet_review_trip_closure instead.',
+  );
 
-    await _client.from(Tables.tripEvents).insert({
-      'id': DateTime.now().microsecondsSinceEpoch.toString(),
-      'trip_id': tripId,
-      'stage': to.name,
-      'occurred_at': DateTime.now().toIso8601String(),
-      'actor_id': actorId,
-      'note': note,
-      'latitude': latitude,
-      'longitude': longitude,
-    });
-
-    await _client
-        .from(Tables.trips)
-        .update({'stage': to.name})
-        .eq('id', tripId);
-  }
-
-  Stream<List<Map<String, dynamic>>> watchEvents(String tripId) {
-    return _client
-        .from(Tables.tripEvents)
-        .stream(primaryKey: ['id'])
-        .eq('trip_id', tripId)
-        .order('occurred_at');
-  }
+  /// One-shot audit-history read.
+  ///
+  /// `fleet_audit_events` is not in the Realtime publication, so this stream
+  /// delivers the current rows once and does not push updates.
+  Stream<List<Map<String, dynamic>>> watchEvents(String tripId) =>
+      Stream.fromFuture(
+        _client
+            .from(Tables.fleetAuditEvents)
+            .select()
+            .eq('entity_type', 'TRIP')
+            .eq('entity_id', tripId)
+            .order('event_time'),
+      );
 }

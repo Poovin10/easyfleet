@@ -44,10 +44,10 @@ class SyncService {
               filterValue: entry.payload['id'] as String,
             );
           case OutboxOperation.delete:
-            await _dataSource.rpc('delete_row', {
-              'table_name': entry.table,
-              'id': entry.payload['id'],
-            });
+            throw UnsupportedError(
+              'Server-side deletes are not available: the backend has no '
+              'generic delete_row RPC.',
+            );
         }
         await _repository.markSynced(entry.id!);
         synced++;

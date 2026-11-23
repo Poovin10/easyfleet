@@ -24,7 +24,10 @@ enum AssignmentStatus { active, paused, ended }
 
 enum GpsDeviceStatus { unbound, active, offline, faulty }
 
-/// Trip lifecycle stages. Each transition appends a row to `trip_events`.
+/// Legacy trip lifecycle stages.
+///
+/// The backend uses `fleet_trips.status` and RPC-owned transitions; history is
+/// recorded in `fleet_audit_events`.
 enum TripStage {
   assigned,
   reporting,
