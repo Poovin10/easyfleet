@@ -140,10 +140,10 @@ class DriverShell extends ConsumerWidget {
     ref.watch(syncControllerProvider);
     return Scaffold(
       body: child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex(context),
+      bottomNavigationBar: AppNavigationBar(
+        currentIndex: _currentIndex(context),
         onDestinationSelected: (index) => context.go(_destinations[index].path),
-        destinations: [
+        items: [
           for (final destination in _destinations)
             NavigationDestination(
               icon: Icon(destination.icon),

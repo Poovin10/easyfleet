@@ -71,14 +71,35 @@ Supabase project: `iktekjnisqmbjtoictnc` (production)
   history rows repaired only after verifying the objects existed. Backend
   coverage grew from 88 to 92 assertions.
 
+### Premium theme & motion (2026-11-27)
+
+- Both apps now share a deliberate **"Depot Instrument Panel"** identity:
+  petrol-ink and paper-white surfaces, signal-amber wayfinding, verified-teal
+  status and tabular figures for odometer/ledger values. It intentionally
+  avoids the default Material seed palette and generic card gradients.
+- IBM Plex Sans (Regular/Medium/SemiBold/Bold) and IBM Plex Mono
+  (Regular/Medium) are bundled from `packages/ui/assets/fonts`, with the SIL
+  Open Font License included. Plex Sans carries the interface; tabular figures
+  keep fast-changing numbers from jittering.
+- Motion is restrained and purposeful: one custom route transition (fade +
+  small directional lift) in `AppTheme.pageTransitionsTheme`, a choreographed
+  launch mark in `SplashScreen`, a 180 ms amber wayfinding indicator and icon
+  response on the bottom rail, and press feedback through Material ripples.
+  `MediaQuery.disableAnimations` skips the launch sequence and route motion.
+- Status chips now use surface-aware colors so amber stays dark enough on
+  paper and slate/teal/red lift on the petrol dark theme.
+- Added `packages/ui/test/design_system_test.dart` to lock the palette,
+  typography, transition builder and selected-destination semantics.
+
 ## 2. Verification results actually observed
 
 | Check | Result |
 |---|---|
-| `dart format --output=none --set-exit-if-changed .` | PASS — 110 files, 0 changed |
+| `dart format --output=none --set-exit-if-changed .` | PASS — 111 files, 0 changed |
 | `flutter analyze` | PASS — No issues found |
 | Driver tests (`flutter test`) | PASS — 6/6 (new Settings screen test) |
 | Transporter tests (`flutter test`) | PASS — 9/9 (new Settings, manual driver, compliance tests) |
+| UI package tests (`flutter test`) | PASS — 3/3 (palette, typography, transition, a11y rail) |
 | Domain package tests | PASS — 7/7 |
 | Network package tests | PASS — 7/7 |
 | Sync package tests | PASS — 9/9 (includes auth-release contract tests) |
@@ -101,14 +122,16 @@ flutter build apk --debug \
 
 | App | Exact path | Bytes | SHA-256 |
 |---|---|---:|---|
-| Driver | `/home/ubuntu/easyfleet-flutter/apps/driver/build/app/outputs/flutter-apk/app-debug.apk` | 234,815,342 | `554dcd63763fe4c464a4d7bbede0b6485ca49bc23c3c133d40abfbee9ea3fb47` |
-| Transporter | `/home/ubuntu/easyfleet-flutter/apps/transporter/build/app/outputs/flutter-apk/app-debug.apk` | 232,257,461 | `6c789ee0ce77a2ef3f34dcbc1bc87e70384994c81bba9ad1fb1542451fc28442` |
+| Driver | `/home/ubuntu/easyfleet-flutter/apps/driver/build/app/outputs/flutter-apk/app-debug.apk` | 234,840,351 | `07581fa555471fe47d2d6f047c422203f44f8cd5481c93e53a2a50d60bb49173` |
+| Transporter | `/home/ubuntu/easyfleet-flutter/apps/transporter/build/app/outputs/flutter-apk/app-debug.apk` | 232,282,859 | `313214ef975e2a03f92e035c97e0897a9221d61a0ce5c75f9732fdf7ecd1872c` |
 
-Build outcomes: driver `✓ Built` in 77.2 s; transporter `✓ Built` in 69.5 s.
-The rebuilt kernel snapshots contain the new strings (`DL profile & documents`
-in Driver; `Add driver manually`, `Upload compliance document` and
+Build outcomes: driver `✓ Built` in 66.8 s; transporter `✓ Built` in 64.7 s.
+Both APKs were inspected as ZIP archives: they contain all six bundled
+`assets/flutter_assets/packages/easyfleet_ui/assets/fonts/IBMPlex*.ttf` files.
+The rebuilt kernel snapshots also contain the new strings (`DL profile &
+documents` in Driver; `Add driver manually`, `Upload compliance document` and
 `Trucks & compliance` in Transporter), confirming the shipped APKs include the
-fixes rather than only the source tree.
+UI fixes and the premium theme rather than only the source tree.
 `aapt2 dump badging` confirms `com.easyfleet.driver` and
 `com.easyfleet.transporter`, both `versionName=1.0.0`, `minSdk=29`,
 `targetSdk=36`. `aapt dump xmltree` on both APKs confirms the new
@@ -159,7 +182,7 @@ validate/build steps were executed locally with the results above.
 cd easyfleet-flutter
 dart format --output=none --set-exit-if-changed .
 flutter analyze
-for d in apps/driver apps/transporter packages/domain packages/network packages/sync; do
+for d in apps/driver apps/transporter packages/ui packages/domain packages/network packages/sync; do
   (cd "$d" && flutter test)
 done
 supabase db query --remote=iktekjnisqmbjtoictnc \

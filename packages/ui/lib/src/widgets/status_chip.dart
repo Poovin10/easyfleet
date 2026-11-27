@@ -1,3 +1,4 @@
+import 'package:easyfleet_core/easyfleet_core.dart';
 import 'package:flutter/material.dart';
 
 /// Colored status pill used across both apps.
@@ -7,38 +8,43 @@ class StatusChip extends StatelessWidget {
   final String status;
   final bool dense;
 
+  static const _verified = AppColors.verified;
+  static const _signal = AppColors.signal;
+  static const _ink = AppColors.inkSoft;
+  static const _danger = AppColors.danger;
+
   static const _colors = <String, Color>{
     // Verification / approval
-    'VERIFIED': Color(0xFF2E7D32),
-    'APPROVED': Color(0xFF2E7D32),
-    'ACTIVE': Color(0xFF2E7D32),
-    'COMPLETED': Color(0xFF2E7D32),
-    'AVAILABLE': Color(0xFF2E7D32),
-    'PENDING': Color(0xFFF9A825),
-    'SUBMITTED': Color(0xFFF9A825),
-    'APPLIED': Color(0xFFF9A825),
-    'TRIAL': Color(0xFFF9A825),
-    'ASSIGNED': Color(0xFF1565C0),
-    'IN_TRANSIT': Color(0xFF1565C0),
-    'SHORTLISTED': Color(0xFF1565C0),
-    'ON_TRIP': Color(0xFF1565C0),
-    'OPEN': Color(0xFF1565C0),
-    'PLANNED': Color(0xFF616161),
-    'NOT_SUBMITTED': Color(0xFF616161),
-    'UNBOUND': Color(0xFF616161),
-    'FAILED': Color(0xFFC62828),
-    'REJECTED': Color(0xFFC62828),
-    'EXPIRED': Color(0xFFC62828),
-    'CANCELLED': Color(0xFFC62828),
-    'FAULTY': Color(0xFFC62828),
-    'REVIEW_REQUIRED': Color(0xFFEF6C00),
-    'CLOSURE_PENDING': Color(0xFFEF6C00),
-    'IN_MAINTENANCE': Color(0xFFEF6C00),
-    'OFFLINE': Color(0xFF757575),
-    'WITHDRAWN': Color(0xFF757575),
-    'ENDED': Color(0xFF757575),
-    'FILLED': Color(0xFF6A1B9A),
-    'APPOINTED': Color(0xFF6A1B9A),
+    'VERIFIED': _verified,
+    'APPROVED': _verified,
+    'ACTIVE': _verified,
+    'COMPLETED': _verified,
+    'AVAILABLE': _verified,
+    'PENDING': _signal,
+    'SUBMITTED': _signal,
+    'APPLIED': _signal,
+    'TRIAL': _signal,
+    'ASSIGNED': AppColors.slate,
+    'IN_TRANSIT': AppColors.slate,
+    'SHORTLISTED': AppColors.slate,
+    'ON_TRIP': AppColors.slate,
+    'OPEN': AppColors.slate,
+    'PLANNED': _ink,
+    'NOT_SUBMITTED': _ink,
+    'UNBOUND': _ink,
+    'FAILED': _danger,
+    'REJECTED': _danger,
+    'EXPIRED': _danger,
+    'CANCELLED': _danger,
+    'FAULTY': _danger,
+    'REVIEW_REQUIRED': _signal,
+    'CLOSURE_PENDING': _signal,
+    'IN_MAINTENANCE': _signal,
+    'OFFLINE': AppColors.slate,
+    'WITHDRAWN': AppColors.slate,
+    'ENDED': AppColors.slate,
+    'FILLED': _ink,
+    'APPOINTED': _ink,
   };
 
   static String label(String status) => status
@@ -46,26 +52,62 @@ class StatusChip extends StatelessWidget {
       .toLowerCase()
       .replaceRange(0, 1, status.isEmpty ? '' : status[0]);
 
+  /// Semantic colors are tuned for the surface they sit on: amber darkens on
+  /// paper, while slate and teal lift on the petrol-dark surface.
+  static Color _readableColor(Color semantic, Brightness brightness) {
+    final light = brightness == Brightness.light;
+    if (semantic == AppColors.signal) {
+      return light ? const Color(0xFF8A5A10) : AppColors.signal;
+    }
+    if (semantic == AppColors.slate) {
+      return light ? AppColors.slate : const Color(0xFFB8C7C9);
+    }
+    if (semantic == AppColors.inkSoft) {
+      return light ? AppColors.inkSoft : const Color(0xFFD6E2E4);
+    }
+    if (semantic == AppColors.verified) {
+      return light ? AppColors.verified : const Color(0xFF63C2B4);
+    }
+    if (semantic == AppColors.danger && !light) {
+      return const Color(0xFFF08A7B);
+    }
+    return semantic;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final color = _colors[status] ?? Theme.of(context).colorScheme.primary;
+    final theme = Theme.of(context);
+    final semantic = _colors[status] ?? theme.colorScheme.primary;
+    final color = _readableColor(semantic, theme.brightness);
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: dense ? 6 : 10,
-        vertical: dense ? 2 : 4,
+        horizontal: dense ? 7 : 11,
+        vertical: dense ? 3 : 5,
       ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        color: semantic.withValues(alpha: 0.13),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: semantic.withValues(alpha: 0.35)),
       ),
-      child: Text(
-        label(status),
-        style: TextStyle(
-          color: color,
-          fontSize: dense ? 10 : 12,
-          fontWeight: FontWeight.w600,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          SizedBox(width: dense ? 4 : 6),
+          Text(
+            label(status),
+            style: TextStyle(
+              color: color,
+              fontFamily: 'IBMPlexSans',
+              fontSize: dense ? 10.5 : 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
