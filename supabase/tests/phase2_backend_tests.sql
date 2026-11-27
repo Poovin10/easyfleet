@@ -564,6 +564,33 @@ begin
          'embedded driver_accounts(display_name)';
 end $$;
 
+-- ---------------------------------------------------------------------------
+-- Manual (non-app) drivers created by a transporter.
+-- ---------------------------------------------------------------------------
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}';
+do $$
+declare v_driver uuid;
+begin
+  v_driver := public.easyfleet_add_manual_company_driver(
+    'aaaaaaaa-0000-4000-8000-000000000001', 'Manual Driver',
+    '+919876543210', 'MAN-1'
+  );
+  insert into test_results(name, ok, detail)
+  select 'manual driver account has no auth user',
+         exists(select 1 from public.driver_accounts where id = v_driver and auth_user_id is null), '';
+  insert into test_results(name, ok, detail)
+  select 'manual driver company link created',
+         exists(select 1 from public.company_drivers where company_id = 'aaaaaaaa-0000-4000-8000-000000000001' and driver_account_id = v_driver), '';
+  insert into test_results(name, ok, detail)
+  select 'manual driver membership approved',
+         exists(select 1 from public.driver_memberships where company_id = 'aaaaaaaa-0000-4000-8000-000000000001' and driver_account_id = v_driver and status = 'APPROVED'), '';
+  insert into test_results(name, ok, detail)
+  select 'manual driver audit recorded',
+         exists(select 1 from public.fleet_audit_events where company_id = 'aaaaaaaa-0000-4000-8000-000000000001' and event_type = 'MANUAL_DRIVER_ADDED'), '';
+end $$;
+reset role;
+
 select name, ok, detail from test_results order by seq;
 
 rollback;

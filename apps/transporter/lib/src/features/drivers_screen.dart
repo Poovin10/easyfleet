@@ -36,6 +36,11 @@ class DriversScreen extends ConsumerWidget {
       length: 2,
       child: AppScaffold(
         title: 'Drivers & appointments',
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () => _showAddDriver(context, ref),
+          icon: const Icon(Icons.person_add_alt_1),
+          label: const Text('Add driver'),
+        ),
         body: Column(
           children: [
             const TabBar(
@@ -132,6 +137,137 @@ class DriversScreen extends ConsumerWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showAddDriver(BuildContext context, WidgetRef ref) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+        ),
+        child: _AddDriverSheet(
+          onDone: (name) {
+            Navigator.pop(sheetContext);
+            ref.invalidate(companyDriversProvider);
+            showSuccessSnack(context, '$name added to your company');
+          },
+        ),
+      ),
+    );
+  }
+}
+
+/// Manual driver registration for transporters: drivers who do not use the
+/// Driver app still get a company record and an approved membership.
+class _AddDriverSheet extends ConsumerStatefulWidget {
+  const _AddDriverSheet({required this.onDone});
+
+  final ValueChanged<String> onDone;
+
+  @override
+  ConsumerState<_AddDriverSheet> createState() => _AddDriverSheetState();
+}
+
+class _AddDriverSheetState extends ConsumerState<_AddDriverSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _name = TextEditingController();
+  final _phone = TextEditingController();
+  final _code = TextEditingController();
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _phone.dispose();
+    _code.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    final membership = ref.read(companyContextProvider).value;
+    if (membership == null) return;
+    setState(() => _saving = true);
+    try {
+      await ref
+          .read(fleetServiceProvider)
+          .addManualDriver(
+            companyId: membership.companyId,
+            displayName: _name.text,
+            phoneE164: _phone.text.trim().isEmpty ? null : _phone.text,
+            localDriverCode: _code.text.trim().isEmpty ? null : _code.text,
+          );
+      if (mounted) widget.onDone(_name.text.trim());
+    } catch (error) {
+      if (mounted) showErrorSnack(context, error);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Add driver manually',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                const Text(
+                  'For drivers who do not use the Driver app. They are added '
+                  'to your company with an approved membership.',
+                ),
+                const SizedBox(height: AppSpacing.md),
+                AppTextFormField(
+                  controller: _name,
+                  label: 'Driver name',
+                  validator: (v) => (v?.trim().length ?? 0) < 2
+                      ? 'Enter at least 2 characters'
+                      : null,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                AppTextFormField(
+                  controller: _phone,
+                  label: 'Phone (optional)',
+                  hint: '+919876543210',
+                  validator: (_) => null,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                AppTextFormField(
+                  controller: _code,
+                  label: 'Local driver code (optional)',
+                  hint: 'DRV-001',
+                  validator: (_) => null,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                FilledButton.icon(
+                  onPressed: _saving ? null : _save,
+                  icon: _saving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.person_add_alt_1),
+                  label: Text(_saving ? 'Adding…' : 'Add driver'),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

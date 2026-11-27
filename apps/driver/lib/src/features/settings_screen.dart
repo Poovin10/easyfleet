@@ -104,6 +104,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final auth = ref.watch(authControllerProvider);
     final syncState = ref.watch(syncControllerProvider);
     final environment = ref.watch(environmentProvider);
+    final version = ref.watch(currentAppVersionProvider);
 
     return AppScaffold(
       title: 'Settings',
@@ -114,11 +115,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  auth.displayName ?? 'Signed in',
+                  auth.displayName ?? 'Driver account',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
+                const SizedBox(height: 4),
                 Text(
-                  auth.email ?? '',
+                  auth.email ?? 'No email on this session',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 Text(
@@ -128,9 +130,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ],
             ),
           ),
+          const SectionHeader(title: 'Your account'),
+          ListTile(
+            leading: const Icon(Icons.badge_outlined),
+            title: const Text('DL profile & documents'),
+            subtitle: const Text('Driving licence, verification and history'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.driverProfile),
+          ),
+          ListTile(
+            leading: const Icon(Icons.notifications_outlined),
+            title: const Text('Notifications'),
+            subtitle: const Text('Assignment and trip updates'),
+            onTap: () => context.push(AppRoutes.notifications),
+          ),
+          ListTile(
+            leading: const Icon(Icons.account_balance_wallet_outlined),
+            title: const Text('Wallet & earnings'),
+            onTap: () => context.push(AppRoutes.wallet),
+          ),
+          ListTile(
+            leading: const Icon(Icons.work_outline),
+            title: const Text('My applications'),
+            onTap: () => context.push(AppRoutes.myApplications),
+          ),
+          ListTile(
+            leading: const Icon(Icons.handshake_outlined),
+            title: const Text('Company assignments'),
+            onTap: () => context.push(AppRoutes.assignments),
+          ),
+          const SectionHeader(title: 'Security'),
           ListTile(
             leading: const Icon(Icons.password),
             title: const Text('Change password'),
+            subtitle: const Text('Requires your current password'),
             trailing: _changingPassword
                 ? const SizedBox(
                     width: 18,
@@ -139,11 +172,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   )
                 : null,
             onTap: _changingPassword ? null : _changePassword,
-          ),
-          ListTile(
-            leading: const Icon(Icons.notifications_outlined),
-            title: const Text('Notifications'),
-            onTap: () => context.push(AppRoutes.notifications),
           ),
           const SectionHeader(title: 'Offline sync'),
           AppSectionCard(
@@ -177,6 +205,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               ],
             ),
+          ),
+          const SectionHeader(title: 'App info'),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: const Text('Version'),
+            trailing: Text('$version (${environment.flavor.name})'),
           ),
           const SizedBox(height: AppSpacing.lg),
           Padding(

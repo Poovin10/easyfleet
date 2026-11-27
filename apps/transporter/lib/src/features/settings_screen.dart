@@ -6,6 +6,7 @@ import 'package:easyfleet_sync/easyfleet_sync.dart';
 import 'package:easyfleet_ui/easyfleet_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'company_gate.dart';
 
@@ -168,6 +169,7 @@ class _TransporterSettingsScreenState
     final auth = ref.watch(authControllerProvider);
     final syncState = ref.watch(syncControllerProvider);
     final environment = ref.watch(environmentProvider);
+    final version = ref.watch(currentAppVersionProvider);
     final memberships = ref.watch(companyContextProvider);
 
     return AppScaffold(
@@ -179,11 +181,12 @@ class _TransporterSettingsScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  auth.displayName ?? 'Signed in',
+                  auth.displayName ?? 'Transporter account',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
+                const SizedBox(height: 4),
                 Text(
-                  auth.email ?? '',
+                  auth.email ?? 'No email on this session',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 Text(
@@ -193,6 +196,7 @@ class _TransporterSettingsScreenState
               ],
             ),
           ),
+          const SectionHeader(title: 'Company'),
           AsyncView(
             value: memberships,
             builder: (membership) => ListTile(
@@ -204,8 +208,55 @@ class _TransporterSettingsScreenState
             ),
           ),
           ListTile(
+            leading: const Icon(Icons.badge_outlined),
+            title: const Text('Company profile & GST'),
+            subtitle: const Text('Registered name and verification'),
+            onTap: () => context.push(AppRoutes.companyProfile),
+          ),
+          const SectionHeader(title: 'Manage your fleet'),
+          ListTile(
+            leading: const Icon(Icons.local_shipping_outlined),
+            title: const Text('Trucks & compliance'),
+            subtitle: const Text(
+              'Add trucks and upload RC, insurance, permits',
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go(AppRoutes.vehicles),
+          ),
+          ListTile(
+            leading: const Icon(Icons.people_outline),
+            title: const Text('Drivers'),
+            subtitle: const Text(
+              'Add drivers manually or hire verified drivers',
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go(AppRoutes.assignments),
+          ),
+          ListTile(
+            leading: const Icon(Icons.card_membership_outlined),
+            title: const Text('Subscription & payments'),
+            onTap: () => context.push('/subscription'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.gps_fixed_outlined),
+            title: const Text('GPS devices'),
+            onTap: () => context.push(AppRoutes.gpsDevices),
+          ),
+          ListTile(
+            leading: const Icon(Icons.receipt_long_outlined),
+            title: const Text('Accounting'),
+            onTap: () => context.push(AppRoutes.accounting),
+          ),
+          ListTile(
+            leading: const Icon(Icons.notifications_outlined),
+            title: const Text('Notifications'),
+            onTap: () => context.push(AppRoutes.notifications),
+          ),
+          const SectionHeader(title: 'Security'),
+          ListTile(
             leading: const Icon(Icons.password),
             title: const Text('Change password'),
+            subtitle: const Text('Requires your current password'),
             trailing: _changingPassword
                 ? const SizedBox(
                     width: 18,
@@ -242,6 +293,12 @@ class _TransporterSettingsScreenState
                 ),
               ],
             ),
+          ),
+          const SectionHeader(title: 'App info'),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: const Text('Version'),
+            trailing: Text('$version (${environment.flavor.name})'),
           ),
           const SizedBox(height: AppSpacing.lg),
           Padding(

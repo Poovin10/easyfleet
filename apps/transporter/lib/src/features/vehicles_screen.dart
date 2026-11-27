@@ -24,54 +24,160 @@ final vehiclesProvider = FutureProvider<List<FleetVehicle>>((ref) async {
   return ref.watch(fleetServiceProvider).vehicles(membership.companyId);
 });
 
+/// Compliance overview: every vehicle with its uploaded document metadata.
+final vehicleComplianceProvider =
+    FutureProvider<
+      List<({FleetVehicle vehicle, List<Map<String, dynamic>> documents})>
+    >((ref) async {
+      final membership = ref.watch(companyContextProvider).value;
+      if (membership == null) return const [];
+      final fleet = ref.watch(fleetServiceProvider);
+      final vehicles = await fleet.vehicles(membership.companyId);
+      final rows =
+          <({FleetVehicle vehicle, List<Map<String, dynamic>> documents})>[];
+      for (final vehicle in vehicles) {
+        final documents = await fleet.vehicleDocuments(
+          membership.companyId,
+          vehicle.id,
+        );
+        rows.add((vehicle: vehicle, documents: documents));
+      }
+      return rows;
+    });
+
 class VehiclesScreen extends ConsumerWidget {
   const VehiclesScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vehicles = ref.watch(vehiclesProvider);
-    return AppScaffold(
-      title: 'Vehicles',
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddVehicle(context, ref),
-        icon: const Icon(Icons.add),
-        label: const Text('Add vehicle'),
+    return DefaultTabController(
+      length: 2,
+      child: AppScaffold(
+        title: 'Vehicles & compliance',
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () => _showAddVehicle(context, ref),
+          icon: const Icon(Icons.add),
+          label: const Text('Add truck'),
+        ),
+        body: Column(
+          children: [
+            const TabBar(
+              tabs: [
+                Tab(text: 'Vehicles'),
+                Tab(text: 'Compliance'),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
+                children: [_vehicleList(ref), _complianceList(context, ref)],
+              ),
+            ),
+          ],
+        ),
       ),
-      body: AsyncView(
-        value: vehicles,
-        onRetry: () => ref.invalidate(vehiclesProvider),
-        isEmpty: (list) => list.isEmpty,
-        emptyMessage: 'No vehicles registered yet.',
-        builder: (list) => RefreshIndicator(
-          onRefresh: () async => ref.invalidate(vehiclesProvider),
-          child: ListView.builder(
-            itemCount: list.length,
-            itemBuilder: (context, index) {
-              final vehicle = list[index];
-              return ListTile(
-                leading: const Icon(Icons.local_shipping_outlined),
-                title: Text(vehicle.registrationNumber),
-                subtitle: Text(
-                  [
-                    vehicle.vehicleType,
-                    if (vehicle.make != null) vehicle.make!,
-                    if (vehicle.odometerKm != null) '${vehicle.odometerKm} km',
-                  ].join(' • '),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      tooltip: 'Compliance documents',
-                      icon: const Icon(Icons.description_outlined),
-                      onPressed: () => _showDocuments(context, ref, vehicle),
+    );
+  }
+
+  Widget _vehicleList(WidgetRef ref) {
+    final vehicles = ref.watch(vehiclesProvider);
+    return AsyncView(
+      value: vehicles,
+      onRetry: () => ref.invalidate(vehiclesProvider),
+      isEmpty: (list) => list.isEmpty,
+      emptyMessage:
+          'No trucks registered yet. Tap "Add truck" to register one.',
+      builder: (list) => RefreshIndicator(
+        onRefresh: () async => ref.invalidate(vehiclesProvider),
+        child: ListView.builder(
+          itemCount: list.length,
+          itemBuilder: (context, index) {
+            final vehicle = list[index];
+            return ListTile(
+              leading: const Icon(Icons.local_shipping_outlined),
+              title: Text(vehicle.registrationNumber),
+              subtitle: Text(
+                [
+                  vehicle.vehicleType,
+                  if (vehicle.make != null) vehicle.make!,
+                  if (vehicle.odometerKm != null) '${vehicle.odometerKm} km',
+                ].join(' • '),
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: 'Compliance documents',
+                    icon: const Icon(Icons.description_outlined),
+                    onPressed: () => _showDocuments(context, ref, vehicle),
+                  ),
+                  StatusChip(status: vehicle.status, dense: true),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _complianceList(BuildContext context, WidgetRef ref) {
+    final compliance = ref.watch(vehicleComplianceProvider);
+    return AsyncView(
+      value: compliance,
+      onRetry: () => ref.invalidate(vehicleComplianceProvider),
+      isEmpty: (rows) => rows.isEmpty,
+      emptyMessage:
+          'Register a truck first, then upload its compliance documents.',
+      builder: (rows) => RefreshIndicator(
+        onRefresh: () async => ref.invalidate(vehicleComplianceProvider),
+        child: ListView.builder(
+          itemCount: rows.length,
+          itemBuilder: (context, index) {
+            final row = rows[index];
+            final documents = row.documents;
+            return ExpansionTile(
+              leading: const Icon(Icons.description_outlined),
+              title: Text(row.vehicle.registrationNumber),
+              subtitle: Text(
+                documents.isEmpty
+                    ? 'No documents uploaded'
+                    : '${documents.length} compliance document(s)',
+              ),
+              children: [
+                for (final document in documents)
+                  ListTile(
+                    title: Text(
+                      document['document_type']?.toString().toUpperCase() ??
+                          'DOCUMENT',
                     ),
-                    StatusChip(status: vehicle.status, dense: true),
-                  ],
+                    subtitle: Text(
+                      [
+                        document['document_number']?.toString() ?? '',
+                        if (document['expiry_date'] != null)
+                          'Expires ${document['expiry_date']}',
+                      ].where((s) => s.isNotEmpty).join(' • '),
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    0,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: FilledButton.tonalIcon(
+                      onPressed: () =>
+                          _showDocuments(context, ref, row.vehicle),
+                      icon: const Icon(Icons.upload_file),
+                      label: const Text('Upload compliance document'),
+                    ),
+                  ),
                 ),
-              );
-            },
-          ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -348,6 +454,7 @@ class _VehicleDocumentsSheetState
             documentNumber: widget.vehicle.registrationNumber,
           );
       ref.invalidate(vehicleDocumentsProvider(args));
+      ref.invalidate(vehicleComplianceProvider);
       if (mounted) showSuccessSnack(context, 'Vehicle document uploaded');
     } catch (error) {
       if (mounted) showErrorSnack(context, error);

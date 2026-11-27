@@ -56,6 +56,7 @@ abstract final class RpcNames {
   static const updateMaintenanceJob = 'easyfleet_update_maintenance_job';
   static const addLedgerEntry = 'easyfleet_add_ledger_entry';
   static const addCompanyDriver = 'easyfleet_add_company_driver';
+  static const addManualCompanyDriver = 'easyfleet_add_manual_company_driver';
   static const captureBreadcrumb = 'easyfleet_capture_breadcrumb';
   static const paySubscription = 'easyfleet_pay_subscription';
   static const postJob = 'easyfleet_post_job';

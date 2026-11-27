@@ -146,6 +146,26 @@ class FleetService {
     return result.toString();
   }
 
+  /// Registers a driver who does not use the Driver app. The backend creates
+  /// the account (with no auth user) and an approved company membership.
+  Future<String> addManualDriver({
+    required String companyId,
+    required String displayName,
+    String? phoneE164,
+    String? localDriverCode,
+  }) async {
+    final result = await _client.rpc<dynamic>(
+      RpcNames.addManualCompanyDriver,
+      params: {
+        'p_company_id': companyId,
+        'p_display_name': displayName.trim(),
+        'p_phone_e164': phoneE164?.trim(),
+        'p_local_driver_code': localDriverCode?.trim(),
+      },
+    );
+    return result.toString();
+  }
+
   // -- Trips ------------------------------------------------------------------
 
   static const _tripSelect =

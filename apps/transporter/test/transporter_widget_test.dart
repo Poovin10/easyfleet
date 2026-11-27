@@ -1,8 +1,11 @@
+import 'package:easyfleet_auth/easyfleet_auth.dart';
 import 'package:easyfleet_core/easyfleet_core.dart';
 import 'package:easyfleet_domain/easyfleet_domain.dart';
 import 'package:easyfleet_network/easyfleet_network.dart';
+import 'package:easyfleet_sync/easyfleet_sync.dart';
 import 'package:easyfleet_transporter/src/features/company_gate.dart';
 import 'package:easyfleet_transporter/src/features/drivers_screen.dart';
+import 'package:easyfleet_transporter/src/features/settings_screen.dart';
 import 'package:easyfleet_transporter/src/features/subscription_screen.dart';
 import 'package:easyfleet_transporter/src/features/vehicles_screen.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 
 SupabaseClient _dummyClient() => SupabaseClient(
   'https://test.invalid',
@@ -48,6 +51,9 @@ class FakeCompanyService extends CompanyService {
 class FakeFleetService extends FleetService {
   FakeFleetService() : super(_dummyClient());
 
+  String? manualDriverName;
+  String? manualDriverPhone;
+
   @override
   Future<List<FleetVehicle>> vehicles(String companyId) async => [
     const FleetVehicle(
@@ -59,6 +65,30 @@ class FakeFleetService extends FleetService {
       odometerKm: 12000,
     ),
   ];
+
+  @override
+  Future<List<Map<String, dynamic>>> vehicleDocuments(
+    String companyId,
+    String vehicleId,
+  ) async => [
+    {
+      'document_type': 'rc',
+      'document_number': 'KL01AB1234',
+      'expiry_date': '2030-01-31',
+    },
+  ];
+
+  @override
+  Future<String> addManualDriver({
+    required String companyId,
+    required String displayName,
+    String? phoneE164,
+    String? localDriverCode,
+  }) async {
+    manualDriverName = displayName;
+    manualDriverPhone = phoneE164;
+    return 'driver-new';
+  }
 }
 
 class FakeSubscriptionService extends SubscriptionService {
@@ -140,6 +170,21 @@ class FakeMarketplaceService extends MarketplaceService {
       lookupId: 'lookup-1',
     );
   }
+}
+
+class FakeAuthController extends AuthController {
+  @override
+  AuthState build() => const AuthState(
+    status: AuthStatus.authenticated,
+    userId: 'u1',
+    email: 'owner@example.com',
+    displayName: 'Test Owner',
+  );
+}
+
+class FakeSyncController extends SyncController {
+  @override
+  SyncLoopState build() => const SyncLoopState(pending: 2, deadLetters: 1);
 }
 
 Widget _wrap(Widget child, List<Override> overrides) {
@@ -253,5 +298,103 @@ void main() {
 
     expect(fake.payCalled, isTrue);
     expect(fake.payMethod, 'MANUAL');
+  });
+
+  testWidgets('settings exposes fleet management and account options', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(const TransporterSettingsScreen(), [
+        authControllerProvider.overrideWith(FakeAuthController.new),
+        syncControllerProvider.overrideWith(FakeSyncController.new),
+        companyContextProvider.overrideWith((ref) async => _membership),
+        companyServiceProvider.overrideWithValue(FakeCompanyService()),
+        supabaseClientProvider.overrideWithValue(_dummyClient()),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Trucks & compliance'), findsOneWidget);
+    expect(
+      find.text('Add trucks and upload RC, insurance, permits'),
+      findsOneWidget,
+    );
+    expect(find.text('Drivers'), findsOneWidget);
+    expect(find.text('Subscription & payments'), findsOneWidget);
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('Change password'),
+      300,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Change password'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('Sync now'),
+      300,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Sync now'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('Sign out'),
+      300,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Sign out'), findsOneWidget);
+  });
+
+  testWidgets('drivers screen adds a manual driver', (tester) async {
+    final fake = FakeFleetService();
+    await tester.pumpWidget(
+      _wrap(const DriversScreen(), [
+        companyContextProvider.overrideWith((ref) async => _membership),
+        fleetServiceProvider.overrideWithValue(fake),
+        marketplaceServiceProvider.overrideWithValue(FakeMarketplaceService()),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    expect(find.text('Add driver manually'), findsOneWidget);
+
+    final fields = find.byType(TextFormField);
+    await tester.enterText(fields.at(0), 'Manual Driver');
+    await tester.enterText(fields.at(1), '+919876543210');
+    await tester.tap(
+      find.descendant(
+        of: find.byType(FilledButton),
+        matching: find.text('Add driver'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(fake.manualDriverName, 'Manual Driver');
+    expect(fake.manualDriverPhone, '+919876543210');
+    expect(find.text('Manual Driver added to your company'), findsOneWidget);
+  });
+
+  testWidgets('compliance tab lists uploaded truck documents', (tester) async {
+    await tester.pumpWidget(
+      _wrap(const VehiclesScreen(), [
+        companyContextProvider.overrideWith((ref) async => _membership),
+        fleetServiceProvider.overrideWithValue(FakeFleetService()),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Add truck'), findsOneWidget);
+    await tester.tap(find.text('Compliance'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 compliance document(s)'), findsOneWidget);
+    await tester.tap(find.byType(ExpansionTile));
+    await tester.pumpAndSettle();
+    expect(find.text('RC'), findsOneWidget);
+    expect(find.text('Upload compliance document'), findsOneWidget);
   });
 }

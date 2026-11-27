@@ -1,6 +1,6 @@
 # EasyFleet Flutter — implementation & verification report
 
-Date: 2026-11-23
+Date: 2026-11-27
 Repository: `git@github.com:Poovin10/easyfleet.git` (branch `main`)
 Supabase project: `iktekjnisqmbjtoictnc` (production)
 
@@ -49,19 +49,41 @@ Supabase project: `iktekjnisqmbjtoictnc` (production)
   for `fleet_trips.driver_account_id` and `driver_ledger_entries.driver_account_id`
   and reloads the PostgREST schema. Backend coverage grew to 88 assertions.
 
+### Follow-up fixes (2026-11-27): installed-app UI gaps
+
+- **Empty-looking Settings.** Both Settings tabs now contain explicit
+  sections: account identity, profile/document shortcuts, security (password),
+  offline-sync diagnostics, app version and sign-out. Transporter Settings also
+  links to company profile/GST, trucks & compliance, drivers, subscription, GPS
+  devices, accounting and notifications.
+- **Transporter could not add a manual driver.** A "Drivers" tab now has an
+  **Add driver** action backed by the new `easyfleet_add_manual_company_driver`
+  RPC. It creates an account with no auth user, links it to the company and
+  grants an approved membership. Migration 13 adds a scoped
+  `driver_accounts_company_read` policy so company reviewers can actually see
+  those manually added drivers (the owner/staff-only SELECT policies hid them).
+- **Truck/compliance entry point was not discoverable.** Transporter navigation
+  now includes a **Fleet** tab. The Vehicles screen has **Add truck**, a
+  **Compliance** tab listing every truck's uploaded documents (type, number,
+  expiry) and an **Upload compliance document** action; Settings deep-links to
+  the same screen.
+- Migrations 12 and 13 were applied individually to production and their
+  history rows repaired only after verifying the objects existed. Backend
+  coverage grew from 88 to 92 assertions.
+
 ## 2. Verification results actually observed
 
 | Check | Result |
 |---|---|
-| `dart format --output=none --set-exit-if-changed .` | PASS — 109 files, 0 changed |
+| `dart format --output=none --set-exit-if-changed .` | PASS — 110 files, 0 changed |
 | `flutter analyze` | PASS — No issues found |
-| Driver tests (`flutter test`) | PASS — 5/5 |
-| Transporter tests (`flutter test`) | PASS — 6/6 (includes new ₹100 lookup test) |
+| Driver tests (`flutter test`) | PASS — 6/6 (new Settings screen test) |
+| Transporter tests (`flutter test`) | PASS — 9/9 (new Settings, manual driver, compliance tests) |
 | Domain package tests | PASS — 7/7 |
 | Network package tests | PASS — 7/7 |
 | Sync package tests | PASS — 9/9 (includes auth-release contract tests) |
-| Backend `phase2_backend_tests.sql` (rolled-back transaction) | PASS — 88/88 assertions |
-| Live catalog recheck | 37 tables / 59 functions / 45 policies / 11 Phase-2 history rows |
+| Backend `phase2_backend_tests.sql` (rolled-back transaction) | PASS — 92/92 assertions |
+| Live catalog recheck | 37 tables / 60 functions / 46 policies / 13 Phase-2 history rows |
 | Android debug builds | See §3 |
 | GitHub Actions CI | Not triggered — no GitHub API token available in this environment; every CI step was reproduced locally (see above) |
 | APK install/launch on device | Not possible — no Android device or emulator is attached; APK integrity checked with Android build tools instead |
@@ -79,10 +101,14 @@ flutter build apk --debug \
 
 | App | Exact path | Bytes | SHA-256 |
 |---|---|---:|---|
-| Driver | `/home/ubuntu/easyfleet-flutter/apps/driver/build/app/outputs/flutter-apk/app-debug.apk` | 195,191,638 | `552dd407a0fd6dbba787fe0e74708e442bf7a04414941bcacc7c161769f3c5b9` |
-| Transporter | `/home/ubuntu/easyfleet-flutter/apps/transporter/build/app/outputs/flutter-apk/app-debug.apk` | 232,245,998 | `c471688bb92175110f20c4d10b9d7d2f2efb256b86f8791b44e17773071d7faf` |
+| Driver | `/home/ubuntu/easyfleet-flutter/apps/driver/build/app/outputs/flutter-apk/app-debug.apk` | 234,815,342 | `554dcd63763fe4c464a4d7bbede0b6485ca49bc23c3c133d40abfbee9ea3fb47` |
+| Transporter | `/home/ubuntu/easyfleet-flutter/apps/transporter/build/app/outputs/flutter-apk/app-debug.apk` | 232,257,461 | `6c789ee0ce77a2ef3f34dcbc1bc87e70384994c81bba9ad1fb1542451fc28442` |
 
-Build outcomes: driver `✓ Built` in 86.4 s; transporter `✓ Built` in 75.6 s.
+Build outcomes: driver `✓ Built` in 77.2 s; transporter `✓ Built` in 69.5 s.
+The rebuilt kernel snapshots contain the new strings (`DL profile & documents`
+in Driver; `Add driver manually`, `Upload compliance document` and
+`Trucks & compliance` in Transporter), confirming the shipped APKs include the
+fixes rather than only the source tree.
 `aapt2 dump badging` confirms `com.easyfleet.driver` and
 `com.easyfleet.transporter`, both `versionName=1.0.0`, `minSdk=29`,
 `targetSdk=36`. `aapt dump xmltree` on both APKs confirms the new
@@ -110,15 +136,17 @@ validate/build steps were executed locally with the results above.
 
 ## 5. Migration / deployment notes
 
-- `supabase migration list --remote=...` now shows all eleven Phase-2 versions
-  present locally **and** remotely, plus ten older remote-only Phase-1
-  migrations that must not be reverted or replayed. Because those older files
-  are absent locally, `supabase db push` intentionally refuses to run; apply
-  new versions individually with `supabase db query --file ...` (as done for
-  migrations 8–10) or sync them into a scratch checkout with `supabase db pull`.
-- `supabase/rollback/20261123_phase2_rollback.sql` covers all ten versions and
-  aborts if new tables contain data. It should only be run after rolling the
-  apps back to the Phase-1B commit.
+- `supabase migration list --remote=...` now shows all thirteen Phase-2 versions
+  (`20261123*` and `20261124*`) present locally **and** remotely, plus ten older
+  remote-only Phase-1 migrations that must not be reverted or replayed. Because
+  those older files are absent locally, `supabase db push` intentionally refuses
+  to run; apply new versions individually with `supabase db query --file ...`
+  (as done for migrations 8–13) or sync them into a scratch checkout with
+  `supabase db pull`.
+- `supabase/rollback/20261123_phase2_rollback.sql` covers the original ten
+  versions and aborts if new tables contain data. It should only be run after
+  rolling the apps back to the Phase-1B commit; migrations 11–13 add constraints,
+  an RPC and a policy rather than new data tables.
 - GitHub Actions requires the repository variable `SUPABASE_PUBLISHABLE_KEY`;
   no secret of any kind is committed to this repository.
 - The shipped APKs are **debug** builds with only the publishable anon key

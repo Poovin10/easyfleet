@@ -64,11 +64,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             const CompanyGate(child: CompanyProfileScreen()),
       ),
       GoRoute(
-        path: AppRoutes.vehicles,
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const CompanyGate(child: VehiclesScreen()),
-      ),
-      GoRoute(
         path: '/jobs-manage',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) =>
@@ -127,6 +122,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 const CompanyGate(child: DriversScreen()),
           ),
           GoRoute(
+            path: AppRoutes.vehicles,
+            builder: (context, state) =>
+                const CompanyGate(child: VehiclesScreen()),
+          ),
+          GoRoute(
             path: AppRoutes.fleetMap,
             builder: (context, state) =>
                 const CompanyGate(child: FleetMapScreen()),
@@ -158,6 +158,11 @@ class TransporterShell extends ConsumerWidget {
       path: AppRoutes.assignments,
       label: 'Drivers',
       icon: Icons.handshake_outlined,
+    ),
+    (
+      path: AppRoutes.vehicles,
+      label: 'Fleet',
+      icon: Icons.local_shipping_outlined,
     ),
     (path: AppRoutes.fleetMap, label: 'Map', icon: Icons.map_outlined),
     (
